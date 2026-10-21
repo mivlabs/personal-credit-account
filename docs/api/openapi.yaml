@@ -1,0 +1,2387 @@
+openapi: 3.1.0
+info:
+  title: Умный кредитный кабинет — API ядра
+  description: 'Бэкенд кредитного конвейера для малого бизнеса: клиент проходит путь от выбора продукта до выдачи кредита,
+
+    банк ведёт ту же заявку в той же системе.
+
+
+    **Авторизация.** `POST /auth/login` → `accessToken`; дальше заголовок `Authorization: Bearer <token>`.
+
+
+    **Формат данных.** JSON в camelCase. Деньги — число в рублях (до 2 знаков), ставка — число, % годовых.
+
+    Даты и время — ISO 8601 с часовым поясом.
+
+
+    **Ошибки.** Формат RFC 7807 (`application/problem+json`): `type`, `title`, `status`, `detail`, машинный `code`
+
+    (`VALIDATION_ERROR`, `INVALID_TRANSITION`, `NOT_FOUND`, `FORBIDDEN`, `IDEMPOTENCY_CONFLICT` …) и `errors[]` по полям.
+
+
+    **Идемпотентная подача.** `POST /applications/{id}/submit` требует заголовок `Idempotency-Key`; повтор с тем же
+
+    ключом возвращает ту же заявку и ничего не создаёт.
+
+
+    **Статусы.** Меняются только по стейт-машине (`docs/state-machine.md`); недопустимый переход — 409 `INVALID_TRANSITION`.'
+  version: 1.0.0
+servers:
+- url: http://localhost:8000
+  description: Локальный запуск через docker compose
+paths:
+  /api/v1/auth/login:
+    post:
+      tags:
+      - auth
+      summary: Вход по логину и паролю
+      description: Возвращает JWT и данные пользователя. Неверный логин или пароль — 401 `INVALID_CREDENTIALS`.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/auth/me:
+    get:
+      tags:
+      - auth
+      summary: Текущий пользователь
+      description: Данные пользователя, которому принадлежит токен.
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      security:
+      - bearerAuth: []
+  /api/v1/products:
+    get:
+      tags:
+      - products
+      summary: Каталог кредитных продуктов
+      description: Активные продукты с диапазонами суммы и срока, базовой ставкой и требованиями.
+      operationId: listProducts
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ProductOut'
+                type: array
+                title: Response Listproducts
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      security:
+      - bearerAuth: []
+  /api/v1/companies/me:
+    get:
+      tags:
+      - companies
+      summary: Профиль моей компании
+      description: 'Данные компании клиента (название, ОГРН, адрес, дата регистрации): клиент не вводит их повторно.
+
+
+        Если данных ещё нет, бэкенд сам запрашивает их у ЕГРЮЛ по ИНН; контракт ответа от этого не меняется.'
+      operationId: getMyCompany
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      security:
+      - bearerAuth: []
+  /api/v1/applications:
+    get:
+      tags:
+      - applications
+      summary: Мои заявки
+      description: Заявки компании клиента, новые сверху. По списку клиент находит свой черновик.
+      operationId: listMyApplications
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ApplicationSummary'
+                type: array
+                title: Response Listmyapplications
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - applications
+      summary: Создать черновик заявки
+      description: 'Создаёт заявку в статусе `DRAFT`: обязателен только `productCode`, остальное можно прислать позже.'
+      operationId: createApplication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      security:
+      - bearerAuth: []
+  /api/v1/applications/{application_id}:
+    get:
+      tags:
+      - applications
+      summary: 'Заявка: статус, анкета, решение, оффер'
+      description: 'Заявка с историей переходов, открытыми запросами данных, решением и оффером.
+
+
+        Решение для клиента — исход и причина простым языком, без баллов. Клиент видит только заявки своей
+
+        компании (чужая — 404), андеррайтер — любые.'
+      operationId: getApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    patch:
+      tags:
+      - applications
+      summary: Обновить черновик
+      description: Сохраняет поля анкеты и шаг мастера (`draftStep`). Только в статусе `DRAFT`, иначе 409 `INVALID_TRANSITION`.
+      operationId: updateApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/submit:
+    post:
+      tags:
+      - applications
+      summary: Подать заявку
+      description: 'Проверяет обязательные поля (`requestedAmount`, `termMonths`, `purpose`) и диапазоны продукта,
+
+        переводит заявку `DRAFT → SUBMITTED` и запускает конвейер обработки. Ответ 202: дальше заявка идёт сама.
+
+
+        Другой ключ на уже поданную заявку или тот же ключ на другую заявку — 409 `IDEMPOTENCY_CONFLICT`.'
+      operationId: submitApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: Уникальный ключ подачи (например, UUID). Повтор с тем же ключом не создаёт ничего нового
+          title: Idempotency-Key
+        description: Уникальный ключ подачи (например, UUID). Повтор с тем же ключом не создаёт ничего нового
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '200':
+          description: 'Повтор с тем же `Idempotency-Key`: возвращена та же заявка'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/timeline:
+    get:
+      tags:
+      - applications
+      summary: Таймлайн статуса
+      description: Этапы с состоянием `done` / `current` / `upcoming`, флагом `actionRequired` и историей переходов.
+      operationId: getApplicationTimeline
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/missing-info:
+    patch:
+      tags:
+      - applications
+      summary: Дозаполнить запрошенные данные
+      description: 'Принимает только поля из открытого запроса данных (прочие — 422). Запрос становится `ANSWERED`,
+
+        заявка `NEEDS_INFO → CHECKING`, конвейер запускается заново.'
+      operationId: answerMissingInfo
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MissingInfoAnswer'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/offer/accept:
+    post:
+      tags:
+      - applications
+      summary: Принять оффер или контроффер
+      description: '`APPROVED` / `COUNTER_OFFER` → `OFFER_ACCEPTED` → `SIGNING`. В ответе подсказка с демо-кодом подписи.'
+      operationId: acceptOffer
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptOfferResponse'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/offer/decline:
+    post:
+      tags:
+      - applications
+      summary: Отказаться от оффера
+      description: '`APPROVED` / `COUNTER_OFFER` → `DECLINED_BY_CLIENT`, оффер получает статус `DECLINED`.'
+      operationId: declineOffer
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/sign:
+    post:
+      tags:
+      - applications
+      summary: Подписать договор кодом (симуляция)
+      description: Код совпал с `DEMO_SIGN_CODE` → `SIGNING → ISSUED`, оффер `SIGNED`. Неверный код — 422 по полю `code`.
+      operationId: signApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/underwriter/queue:
+    get:
+      tags:
+      - underwriter
+      summary: Очередь ручной проверки
+      description: 'Заявки в статусе `MANUAL_REVIEW`, по времени ожидания: самые старые сверху.'
+      operationId: getUnderwriterQueue
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Размер страницы
+          default: 20
+          title: Limit
+        description: Размер страницы
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Сколько записей пропустить
+          default: 0
+          title: Offset
+        description: Сколько записей пропустить
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/underwriter/applications/{application_id}:
+    get:
+      tags:
+      - underwriter
+      summary: Заявка для андеррайтера
+      description: 'Анкета, профиль компании, ответы ЕГРЮЛ / ФНС / БКИ, балл и все факторы, история решений: на одном экране.'
+      operationId: getUnderwriterApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnderwriterApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/underwriter/applications/{application_id}/decision:
+    post:
+      tags:
+      - underwriter
+      summary: Принять ручное решение
+      description: 'Исходы: `APPROVED`, `COUNTER_OFFER`, `NEEDS_INFO`, `REJECTED`. Комментарий обязателен (иначе 422);
+
+        для `COUNTER_OFFER` обязателен `offerAmount`, для `NEEDS_INFO` — `infoRequest`.
+
+        Допустимо только для заявок в `MANUAL_REVIEW`, иначе 409 `INVALID_TRANSITION`.'
+      operationId: makeUnderwriterDecision
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+            examples:
+              approve:
+                summary: Одобрить
+                value:
+                  outcome: APPROVED
+                  comment: Молодая компания, но выручка подтверждена выпиской
+                  clientReason: Выручка компании подтверждает возможность платить по кредиту
+              counterOffer:
+                summary: Встречное предложение
+                value:
+                  outcome: COUNTER_OFFER
+                  comment: Сумма выше допустимой долговой нагрузки
+                  clientReason: 'Мы можем предложить меньшую сумму: так платёж будет комфортнее'
+                  offerAmount: 2000000.0
+              needsInfo:
+                summary: Запросить данные
+                value:
+                  outcome: NEEDS_INFO
+                  comment: Нет подтверждения выручки
+                  infoRequest:
+                    description: Укажите годовую выручку за последний год
+                    fields:
+                    - revenueAmount
+              reject:
+                summary: Отказать
+                value:
+                  outcome: REJECTED
+                  comment: Высокая долговая нагрузка
+                  clientReason: Сейчас долговая нагрузка компании выше допустимой
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/audit:
+    get:
+      tags:
+      - underwriter
+      summary: Аудит заявки
+      description: 'Все переходы статуса: кто, когда, из какого статуса в какой, комментарий. От старых к новым.'
+      operationId: getApplicationAudit
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEntryOut'
+                title: Response Getapplicationaudit
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /health:
+    get:
+      tags:
+      - system
+      summary: Проверка работоспособности
+      description: Без префикса `/api/v1` и без авторизации; проверяет соединение с БД. Для healthcheck в compose.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthOut'
+        '503':
+          description: База данных недоступна
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+components:
+  schemas:
+    AcceptOfferResponse:
+      properties:
+        application:
+          $ref: '#/components/schemas/ApplicationOut'
+        signHint:
+          type: string
+          title: Signhint
+          description: Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE)
+          examples:
+          - 'Демо-режим: для подписания введите код 123456'
+      type: object
+      required:
+      - application
+      - signHint
+      title: AcceptOfferResponse
+    ApplicationCreate:
+      properties:
+        requestedAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Requestedamount
+          description: Запрошенная сумма, ₽
+        termMonths:
+          anyOf:
+          - type: integer
+            maximum: 600.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Termmonths
+          description: Срок, мес.
+        purpose:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Purpose
+          description: Цель кредита
+        revenueAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Revenueamount
+          description: Годовая выручка со слов клиента, ₽
+        debtAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Debtamount
+          description: Текущая долговая нагрузка, ₽
+        productCode:
+          $ref: '#/components/schemas/ProductCode'
+        draftStep:
+          anyOf:
+          - type: integer
+            maximum: 20.0
+            minimum: 1.0
+          - type: 'null'
+          title: Draftstep
+          description: Шаг мастера, на котором остановился клиент
+      type: object
+      required:
+      - productCode
+      title: ApplicationCreate
+      description: 'Создание черновика: продукт обязателен, остальные поля можно прислать позже.'
+      examples:
+      - draftStep: 2
+        productCode: EQUIPMENT
+        requestedAmount: 1500000.0
+        termMonths: 24
+    ApplicationField:
+      type: string
+      enum:
+      - requestedAmount
+      - termMonths
+      - purpose
+      - revenueAmount
+      - debtAmount
+      title: ApplicationField
+      description: Поля анкеты, которые клиент заполняет сам и которые банк может запросить повторно.
+    ApplicationOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        companyId:
+          type: integer
+          title: Companyid
+        product:
+          $ref: '#/components/schemas/ProductOut'
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        statusName:
+          type: string
+          title: Statusname
+        requestedAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Requestedamount
+        termMonths:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Termmonths
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+        revenueAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Revenueamount
+        debtAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Debtamount
+        draftStep:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Draftstep
+        submittedAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Submittedat
+        createdAt:
+          type: string
+          format: date-time
+          title: Createdat
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updatedat
+        history:
+          items:
+            $ref: '#/components/schemas/StatusHistoryItem'
+          type: array
+          title: History
+          description: История переходов статуса, от старых к новым
+        openInfoRequests:
+          items:
+            $ref: '#/components/schemas/InfoRequestOut'
+          type: array
+          title: Openinforequests
+          description: Открытые запросы данных
+        decision:
+          anyOf:
+          - $ref: '#/components/schemas/ClientDecisionOut'
+          - type: 'null'
+          description: Последнее решение
+        offer:
+          anyOf:
+          - $ref: '#/components/schemas/OfferOut'
+          - type: 'null'
+          description: Актуальный оффер
+      type: object
+      required:
+      - id
+      - companyId
+      - product
+      - status
+      - statusName
+      - requestedAmount
+      - termMonths
+      - purpose
+      - revenueAmount
+      - debtAmount
+      - draftStep
+      - submittedAt
+      - createdAt
+      - updatedAt
+      - history
+      - openInfoRequests
+      - decision
+      - offer
+      title: ApplicationOut
+      examples:
+      - companyId: 1
+        createdAt: '2026-10-22T09:00:00+03:00'
+        debtAmount: 0.0
+        decision:
+          decidedAt: '2026-10-22T09:15:04+03:00'
+          outcome: APPROVED
+          reason: Стабильная выручка и чистая кредитная история
+        draftStep: 3
+        history:
+        - at: '2026-10-22T09:00:00+03:00'
+          toStatus: DRAFT
+          toStatusName: Черновик
+        - at: '2026-10-22T09:15:00+03:00'
+          fromStatus: DRAFT
+          toStatus: SUBMITTED
+          toStatusName: Подана
+        id: 42
+        offer:
+          amount: 1500000.0
+          id: 7
+          monthlyPayment: 74601.52
+          rate: 16.9
+          status: SENT
+          termMonths: 24
+        openInfoRequests: []
+        product:
+          code: EQUIPMENT
+          maxAmount: 30000000.0
+          maxTermMonths: 60
+          minAmount: 500000.0
+          minTermMonths: 12
+          name: Кредит на оборудование
+          rate: 16.9
+        purpose: Покупка фрезерного станка
+        requestedAmount: 1500000.0
+        revenueAmount: 12000000.0
+        status: APPROVED
+        statusName: Одобрено
+        submittedAt: '2026-10-22T09:15:00+03:00'
+        termMonths: 24
+        updatedAt: '2026-10-22T09:15:04+03:00'
+    ApplicationStatus:
+      type: string
+      enum:
+      - DRAFT
+      - SUBMITTED
+      - CHECKING
+      - EXTERNAL_CHECK
+      - SCORING
+      - NEEDS_INFO
+      - MANUAL_REVIEW
+      - APPROVED
+      - COUNTER_OFFER
+      - REJECTED
+      - OFFER_ACCEPTED
+      - SIGNING
+      - ISSUED
+      - DECLINED_BY_CLIENT
+      title: ApplicationStatus
+    ApplicationSummary:
+      properties:
+        id:
+          type: integer
+          title: Id
+        productCode:
+          $ref: '#/components/schemas/ProductCode'
+        productName:
+          type: string
+          title: Productname
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        statusName:
+          type: string
+          title: Statusname
+        requestedAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Requestedamount
+        termMonths:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Termmonths
+        draftStep:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Draftstep
+        actionRequired:
+          type: boolean
+          title: Actionrequired
+          description: От клиента нужно действие (дозаполнить, принять оффер, подписать)
+        createdAt:
+          type: string
+          format: date-time
+          title: Createdat
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updatedat
+      type: object
+      required:
+      - id
+      - productCode
+      - productName
+      - status
+      - statusName
+      - requestedAmount
+      - termMonths
+      - draftStep
+      - actionRequired
+      - createdAt
+      - updatedAt
+      title: ApplicationSummary
+      description: Строка списка «мои заявки».
+    ApplicationUpdate:
+      properties:
+        requestedAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Requestedamount
+          description: Запрошенная сумма, ₽
+        termMonths:
+          anyOf:
+          - type: integer
+            maximum: 600.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Termmonths
+          description: Срок, мес.
+        purpose:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Purpose
+          description: Цель кредита
+        revenueAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Revenueamount
+          description: Годовая выручка со слов клиента, ₽
+        debtAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Debtamount
+          description: Текущая долговая нагрузка, ₽
+        draftStep:
+          anyOf:
+          - type: integer
+            maximum: 20.0
+            minimum: 1.0
+          - type: 'null'
+          title: Draftstep
+          description: Шаг мастера
+      type: object
+      title: ApplicationUpdate
+      description: Частичное обновление черновика. Продукт после создания не меняется.
+      examples:
+      - debtAmount: 0.0
+        draftStep: 3
+        purpose: Покупка фрезерного станка
+        revenueAmount: 12000000.0
+    AuditEntryOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        userId:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Userid
+          description: Пусто для системных переходов
+        userName:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Username
+        fromStatus:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Fromstatus
+          description: Пусто при создании
+        toStatus:
+          type: string
+          title: Tostatus
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+        createdAt:
+          type: string
+          format: date-time
+          title: Createdat
+      type: object
+      required:
+      - id
+      - userId
+      - userName
+      - fromStatus
+      - toStatus
+      - comment
+      - createdAt
+      title: AuditEntryOut
+      examples:
+      - comment: 'Балл в пограничной зоне: 55'
+        createdAt: '2026-10-22T09:15:04+03:00'
+        fromStatus: SCORING
+        id: 101
+        toStatus: MANUAL_REVIEW
+    CheckSource:
+      type: string
+      enum:
+      - EGRUL
+      - FNS
+      - BKI
+      title: CheckSource
+    CheckStatus:
+      type: string
+      enum:
+      - OK
+      - TIMEOUT
+      - ERROR
+      title: CheckStatus
+    ClientDecisionOut:
+      properties:
+        outcome:
+          $ref: '#/components/schemas/DecisionOutcome'
+        reason:
+          type: string
+          title: Reason
+        decidedAt:
+          type: string
+          format: date-time
+          title: Decidedat
+      type: object
+      required:
+      - outcome
+      - reason
+      - decidedAt
+      title: ClientDecisionOut
+      description: 'Решение для клиента: исход и причина простым языком, без баллов и факторов.'
+    CompanyOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        inn:
+          type: string
+          title: Inn
+          description: 'ИНН: 10 цифр у ООО, 12 у ИП'
+        ogrn:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ogrn
+          description: ОГРН / ОГРНИП из ЕГРЮЛ
+        name:
+          type: string
+          title: Name
+          description: Наименование
+        legalForm:
+          $ref: '#/components/schemas/LegalForm'
+        registrationDate:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Registrationdate
+          description: Дата регистрации из ЕГРЮЛ
+        legalAddress:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Legaladdress
+          description: Юридический адрес из ЕГРЮЛ
+      type: object
+      required:
+      - id
+      - inn
+      - ogrn
+      - name
+      - legalForm
+      - registrationDate
+      - legalAddress
+      title: CompanyOut
+      examples:
+      - id: 1
+        inn: '770100000001'
+        legalAddress: г. Москва, ул. Тверская, д. 1
+        legalForm: IP
+        name: ИП Иванов Пётр Сергеевич
+        ogrn: '3217700000011'
+        registrationDate: '2018-04-12'
+    DecisionDetailOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        type:
+          $ref: '#/components/schemas/DecisionType'
+        outcome:
+          $ref: '#/components/schemas/DecisionOutcome'
+        score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score
+        reason:
+          type: string
+          title: Reason
+          description: Причина для клиента
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+          description: Комментарий андеррайтера
+        decidedBy:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decidedby
+          description: ФИО андеррайтера; пусто для автоматического решения
+        createdAt:
+          type: string
+          format: date-time
+          title: Createdat
+        factors:
+          items:
+            $ref: '#/components/schemas/DecisionFactorOut'
+          type: array
+          title: Factors
+      type: object
+      required:
+      - id
+      - type
+      - outcome
+      - score
+      - reason
+      - comment
+      - decidedBy
+      - createdAt
+      - factors
+      title: DecisionDetailOut
+    DecisionFactorOut:
+      properties:
+        code:
+          type: string
+          title: Code
+          examples:
+          - REVENUE
+        value:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Value
+          description: Значение фактора на момент решения
+        points:
+          type: integer
+          title: Points
+          description: Баллы по скоринг-карте
+      type: object
+      required:
+      - code
+      - value
+      - points
+      title: DecisionFactorOut
+    DecisionOutcome:
+      type: string
+      enum:
+      - APPROVED
+      - COUNTER_OFFER
+      - NEEDS_INFO
+      - MANUAL_REVIEW
+      - REJECTED
+      title: DecisionOutcome
+      description: Исход решения по заявке (credit_decision.outcome_code).
+    DecisionRequest:
+      properties:
+        outcome:
+          $ref: '#/components/schemas/ManualOutcome'
+        comment:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Comment
+          description: Комментарий андеррайтера (обязателен, пустой не принимается)
+        clientReason:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Clientreason
+          description: Причина решения простым языком для клиента; если не задана, берётся стандартная формулировка
+        offerAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Offeramount
+          description: Обязательна для COUNTER_OFFER
+        offerTermMonths:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Offertermmonths
+          description: Срок оффера; по умолчанию как в заявке
+        infoRequest:
+          anyOf:
+          - $ref: '#/components/schemas/InfoRequestInput'
+          - type: 'null'
+          description: Обязателен для NEEDS_INFO
+      type: object
+      required:
+      - outcome
+      - comment
+      title: DecisionRequest
+    DecisionType:
+      type: string
+      enum:
+      - AUTO
+      - MANUAL
+      title: DecisionType
+    ErrorCode:
+      type: string
+      enum:
+      - VALIDATION_ERROR
+      - INVALID_TRANSITION
+      - NOT_FOUND
+      - FORBIDDEN
+      - UNAUTHORIZED
+      - INVALID_CREDENTIALS
+      - IDEMPOTENCY_CONFLICT
+      - NOT_IMPLEMENTED
+      - SERVICE_UNAVAILABLE
+      - INTERNAL_ERROR
+      title: ErrorCode
+    ExternalCheckOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        source:
+          $ref: '#/components/schemas/CheckSource'
+        status:
+          $ref: '#/components/schemas/CheckStatus'
+        response:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Response
+          description: Ответ сервиса как есть
+        requestedAt:
+          type: string
+          format: date-time
+          title: Requestedat
+        respondedAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Respondedat
+      type: object
+      required:
+      - id
+      - source
+      - status
+      - response
+      - requestedAt
+      - respondedAt
+      title: ExternalCheckOut
+    FieldError:
+      properties:
+        field:
+          type: string
+          title: Field
+          description: Имя поля (camelCase) или заголовка
+          examples:
+          - requestedAmount
+        message:
+          type: string
+          title: Message
+          description: Что не так, простым языком
+        code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Code
+          description: Машинный код ошибки поля
+      type: object
+      required:
+      - field
+      - message
+      - code
+      title: FieldError
+    HealthOut:
+      properties:
+        status:
+          type: string
+          title: Status
+        database:
+          type: string
+          title: Database
+      type: object
+      required:
+      - status
+      - database
+      title: HealthOut
+      examples:
+      - database: ok
+        status: ok
+    InfoRequestInput:
+      properties:
+        description:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Description
+          description: Что нужно дозаполнить, простым языком
+        fields:
+          items:
+            $ref: '#/components/schemas/ApplicationField'
+          type: array
+          minItems: 1
+          title: Fields
+          description: Какие поля анкеты клиент должен заполнить
+      type: object
+      required:
+      - description
+      - fields
+      title: InfoRequestInput
+    InfoRequestOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        description:
+          type: string
+          title: Description
+          description: Что нужно дозаполнить, простым языком
+        fields:
+          items:
+            $ref: '#/components/schemas/ApplicationField'
+          type: array
+          title: Fields
+          description: Какие поля анкеты нужно заполнить
+        status:
+          $ref: '#/components/schemas/InfoRequestStatus'
+        createdAt:
+          type: string
+          format: date-time
+          title: Createdat
+        answeredAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Answeredat
+      type: object
+      required:
+      - id
+      - description
+      - fields
+      - status
+      - createdAt
+      - answeredAt
+      title: InfoRequestOut
+    InfoRequestStatus:
+      type: string
+      enum:
+      - OPEN
+      - ANSWERED
+      title: InfoRequestStatus
+    LegalForm:
+      type: string
+      enum:
+      - IP
+      - OOO
+      title: LegalForm
+    LoginRequest:
+      properties:
+        login:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Login
+          description: Логин
+        password:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Password
+          description: Пароль
+      type: object
+      required:
+      - login
+      - password
+      title: LoginRequest
+      examples:
+      - login: client_fast
+        password: demo1234
+    LoginResponse:
+      properties:
+        accessToken:
+          type: string
+          title: Accesstoken
+          description: 'JWT; передавать как `Authorization: Bearer <token>`'
+        tokenType:
+          type: string
+          title: Tokentype
+          default: Bearer
+        expiresIn:
+          type: integer
+          title: Expiresin
+          description: Срок жизни токена, секунд
+        user:
+          $ref: '#/components/schemas/UserOut'
+      type: object
+      required:
+      - accessToken
+      - tokenType
+      - expiresIn
+      - user
+      title: LoginResponse
+      examples:
+      - accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn: 28800
+        tokenType: Bearer
+        user:
+          companyId: 1
+          id: 1
+          name: Иванов Пётр Сергеевич
+          role: CLIENT
+    ManualOutcome:
+      type: string
+      enum:
+      - APPROVED
+      - COUNTER_OFFER
+      - NEEDS_INFO
+      - REJECTED
+      title: ManualOutcome
+      description: Исходы, доступные андеррайтеру при ручном решении.
+    MissingInfoAnswer:
+      properties:
+        requestedAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Requestedamount
+          description: Запрошенная сумма, ₽
+        termMonths:
+          anyOf:
+          - type: integer
+            maximum: 600.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Termmonths
+          description: Срок, мес.
+        purpose:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Purpose
+          description: Цель кредита
+        revenueAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Revenueamount
+          description: Годовая выручка со слов клиента, ₽
+        debtAmount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Debtamount
+          description: Текущая долговая нагрузка, ₽
+      type: object
+      title: MissingInfoAnswer
+      description: 'Дозаполнение: допустимы только поля из открытого запроса данных, иначе 422.'
+      examples:
+      - revenueAmount: 8500000.0
+    OfferOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        amount:
+          type: number
+          multipleOf: 0.01
+          minimum: 0.0
+          title: Amount
+          description: Предложенная сумма, ₽ (при контроффере меньше запрошенной)
+        termMonths:
+          type: integer
+          title: Termmonths
+        rate:
+          type: number
+          minimum: 0.0
+          title: Rate
+          description: Процентная ставка, % годовых
+        monthlyPayment:
+          type: number
+          multipleOf: 0.01
+          minimum: 0.0
+          title: Monthlypayment
+          description: Ежемесячный аннуитетный платёж, ₽
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        acceptedAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Acceptedat
+        signedAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Signedat
+      type: object
+      required:
+      - id
+      - amount
+      - termMonths
+      - rate
+      - monthlyPayment
+      - status
+      - acceptedAt
+      - signedAt
+      title: OfferOut
+    OfferStatus:
+      type: string
+      enum:
+      - SENT
+      - ACCEPTED
+      - DECLINED
+      - SIGNED
+      title: OfferStatus
+    ProblemDetail:
+      properties:
+        type:
+          type: string
+          title: Type
+          description: URN типа проблемы
+          examples:
+          - urn:problem:validation-error
+        title:
+          type: string
+          title: Title
+          description: Краткий заголовок
+          examples:
+          - Ошибка валидации
+        status:
+          type: integer
+          title: Status
+          description: HTTP-статус
+          examples:
+          - 422
+        detail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Detail
+          description: Подробности для человека
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+          description: Машинный код ошибки
+        instance:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Instance
+          description: Путь запроса
+        errors:
+          items:
+            $ref: '#/components/schemas/FieldError'
+          type: array
+          title: Errors
+          description: Ошибки по полям
+        requestId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Requestid
+          description: Идентификатор запроса для логов
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - code
+      - instance
+      - errors
+      - requestId
+      title: ProblemDetail
+      description: Ошибка в формате RFC 7807 (`application/problem+json`).
+      examples:
+      - code: VALIDATION_ERROR
+        detail: 'Запрос не прошёл проверку: исправьте отмеченные поля'
+        errors:
+        - code: OUT_OF_RANGE
+          field: requestedAmount
+          message: Сумма должна быть от 300 000 до 10 000 000 ₽
+        instance: /api/v1/applications/42/submit
+        requestId: a1b2c3d4
+        status: 422
+        title: Ошибка валидации
+        type: urn:problem:validation-error
+    ProductCode:
+      type: string
+      enum:
+      - WORKING_CAPITAL
+      - EQUIPMENT
+      - OVERDRAFT
+      title: ProductCode
+    ProductOut:
+      properties:
+        code:
+          $ref: '#/components/schemas/ProductCode'
+        name:
+          type: string
+          title: Name
+        minAmount:
+          type: number
+          multipleOf: 0.01
+          minimum: 0.0
+          title: Minamount
+          description: Минимальная сумма, ₽
+        maxAmount:
+          type: number
+          multipleOf: 0.01
+          minimum: 0.0
+          title: Maxamount
+          description: Максимальная сумма, ₽
+        minTermMonths:
+          type: integer
+          title: Mintermmonths
+          description: Минимальный срок, мес.
+        maxTermMonths:
+          type: integer
+          title: Maxtermmonths
+          description: Максимальный срок, мес.
+        rate:
+          type: number
+          minimum: 0.0
+          title: Rate
+          description: Базовая ставка, % годовых
+        requirements:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Requirements
+          description: Требования к заёмщику
+      type: object
+      required:
+      - code
+      - name
+      - minAmount
+      - maxAmount
+      - minTermMonths
+      - maxTermMonths
+      - rate
+      - requirements
+      title: ProductOut
+      examples:
+      - code: WORKING_CAPITAL
+        maxAmount: 10000000.0
+        maxTermMonths: 36
+        minAmount: 300000.0
+        minTermMonths: 3
+        name: Оборотный кредит
+        rate: 18.5
+        requirements: Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней
+    QueueItem:
+      properties:
+        applicationId:
+          type: integer
+          title: Applicationid
+        companyName:
+          type: string
+          title: Companyname
+        productCode:
+          $ref: '#/components/schemas/ProductCode'
+        productName:
+          type: string
+          title: Productname
+        requestedAmount:
+          type: number
+          multipleOf: 0.01
+          minimum: 0.0
+          title: Requestedamount
+          description: Сумма в рублях, не более 2 знаков после запятой
+        score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score
+          description: Балл скоринга 0–100; пусто, если балла нет
+        submittedAt:
+          type: string
+          format: date-time
+          title: Submittedat
+        waitingSeconds:
+          type: integer
+          title: Waitingseconds
+          description: Сколько заявка ждёт в очереди, секунд
+        queueReason:
+          type: string
+          title: Queuereason
+          description: Почему заявка попала в очередь
+      type: object
+      required:
+      - applicationId
+      - companyName
+      - productCode
+      - productName
+      - requestedAmount
+      - score
+      - submittedAt
+      - waitingSeconds
+      - queueReason
+      title: QueueItem
+      examples:
+      - applicationId: 42
+        companyName: ООО «Ромашка»
+        productCode: WORKING_CAPITAL
+        productName: Оборотный кредит
+        queueReason: 'Балл в пограничной зоне: 55'
+        requestedAmount: 3000000.0
+        score: 55
+        submittedAt: '2026-10-22T09:15:00+03:00'
+        waitingSeconds: 1260
+    QueueOut:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/QueueItem'
+          type: array
+          title: Items
+          description: Старые заявки сверху
+        total:
+          type: integer
+          title: Total
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+      type: object
+      required:
+      - items
+      - total
+      - limit
+      - offset
+      title: QueueOut
+    SignRequest:
+      properties:
+        code:
+          type: string
+          maxLength: 16
+          minLength: 1
+          title: Code
+          description: Код подтверждения подписи
+      type: object
+      required:
+      - code
+      title: SignRequest
+      examples:
+      - code: '123456'
+    StageCode:
+      type: string
+      enum:
+      - DRAFT
+      - SUBMITTED
+      - REVIEW
+      - DECISION
+      - SIGNING
+      - ISSUED
+      title: StageCode
+    StageState:
+      type: string
+      enum:
+      - done
+      - current
+      - upcoming
+      title: StageState
+    StatusHistoryItem:
+      properties:
+        fromStatus:
+          anyOf:
+          - $ref: '#/components/schemas/ApplicationStatus'
+          - type: 'null'
+          description: Пусто при создании
+        toStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        toStatusName:
+          type: string
+          title: Tostatusname
+        at:
+          type: string
+          format: date-time
+          title: At
+      type: object
+      required:
+      - fromStatus
+      - toStatus
+      - toStatusName
+      - at
+      title: StatusHistoryItem
+    TimelineOut:
+      properties:
+        applicationId:
+          type: integer
+          title: Applicationid
+        currentStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        currentStatusName:
+          type: string
+          title: Currentstatusname
+        stages:
+          items:
+            $ref: '#/components/schemas/TimelineStage'
+          type: array
+          title: Stages
+        history:
+          items:
+            $ref: '#/components/schemas/StatusHistoryItem'
+          type: array
+          title: History
+      type: object
+      required:
+      - applicationId
+      - currentStatus
+      - currentStatusName
+      - stages
+      - history
+      title: TimelineOut
+      examples:
+      - applicationId: 42
+        currentStatus: NEEDS_INFO
+        currentStatusName: Нужны данные
+        history: []
+        stages:
+        - actionRequired: false
+          code: DRAFT
+          description: Вы заполняете заявку
+          enteredAt: '2026-10-22T09:00:00+03:00'
+          name: Заявка
+          state: done
+        - actionRequired: false
+          code: SUBMITTED
+          description: Заявка принята банком
+          enteredAt: '2026-10-22T09:15:00+03:00'
+          name: Подана
+          state: done
+        - actionRequired: true
+          code: REVIEW
+          description: Банк проверяет данные и оценивает заявку
+          enteredAt: '2026-10-22T09:15:02+03:00'
+          name: Проверка
+          state: current
+        - actionRequired: false
+          code: DECISION
+          description: Банк сообщает решение
+          name: Решение
+          state: upcoming
+    TimelineStage:
+      properties:
+        code:
+          $ref: '#/components/schemas/StageCode'
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+          description: Что происходит на этом этапе, простым языком
+        state:
+          $ref: '#/components/schemas/StageState'
+        actionRequired:
+          type: boolean
+          title: Actionrequired
+          description: От клиента нужно действие на этом этапе
+        enteredAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Enteredat
+          description: Когда этап начался
+      type: object
+      required:
+      - code
+      - name
+      - description
+      - state
+      - actionRequired
+      - enteredAt
+      title: TimelineStage
+    UnderwriterApplicationOut:
+      properties:
+        application:
+          $ref: '#/components/schemas/ApplicationOut'
+        company:
+          $ref: '#/components/schemas/CompanyOut'
+        externalChecks:
+          items:
+            $ref: '#/components/schemas/ExternalCheckOut'
+          type: array
+          title: Externalchecks
+        decisions:
+          items:
+            $ref: '#/components/schemas/DecisionDetailOut'
+          type: array
+          title: Decisions
+          description: От новых к старым
+        queueReason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Queuereason
+          description: Почему заявка попала в очередь
+      type: object
+      required:
+      - application
+      - company
+      - externalChecks
+      - decisions
+      - queueReason
+      title: UnderwriterApplicationOut
+      description: 'Всё на одном экране: анкета, внешние данные, балл и факторы, история решений.'
+    UserOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        name:
+          type: string
+          title: Name
+          description: ФИО
+        role:
+          $ref: '#/components/schemas/UserRole'
+        companyId:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Companyid
+          description: Компания клиента; у андеррайтера пусто
+      type: object
+      required:
+      - id
+      - name
+      - role
+      - companyId
+      title: UserOut
+    UserRole:
+      type: string
+      enum:
+      - CLIENT
+      - UNDERWRITER
+      title: UserRole
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: 'JWT из `POST /auth/login`: `Authorization: Bearer <token>`'
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: auth
+  description: Вход и текущий пользователь
+- name: products
+  description: Каталог кредитных продуктов
+- name: companies
+  description: Профиль компании клиента
+- name: applications
+  description: 'Кредитные заявки клиента: черновик, подача, статус, оффер, подписание'
+- name: underwriter
+  description: 'Панель банка: очередь, ручное решение, аудит'
+- name: system
+  description: Служебные эндпоинты
