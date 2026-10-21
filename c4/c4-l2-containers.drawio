@@ -1,0 +1,52 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="C4 L2 · Контейнеры" id="0">
+    <mxGraphModel dx="2224" dy="1421" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1060" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p_cl" parent="1" style="shape=mxgraph.c4.person2;align=center;whiteSpace=wrap;html=1;fillColor=#08427B;fontColor=#FFFFFF;strokeColor=#06315C;fontSize=18;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;Клиент-предприниматель&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;Подаёт заявку, принимает оффер&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="270" width="310" x="15" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p_uw" parent="1" style="shape=mxgraph.c4.person2;align=center;whiteSpace=wrap;html=1;fillColor=#08427B;fontColor=#FFFFFF;strokeColor=#06315C;fontSize=18;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;Андеррайтер банка&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;Ручное решение по заявкам&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="270" width="310" x="15" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="b" parent="1" style="rounded=1;fontSize=16;whiteSpace=wrap;html=1;dashed=1;arcSize=2;fillColor=none;strokeColor=#666666;fontColor=#333333;labelBackgroundColor=none;align=left;verticalAlign=bottom;labelBorderColor=none;spacingTop=0;spacing=10;dashPattern=8 4;metaEdit=1;rotatable=0;perimeter=rectanglePerimeter;noLabel=0;labelPadding=0;allowArrows=0;connectable=0;expand=0;recursiveResize=0;editable=1;pointerEvents=0;absoluteArcSize=1;" value="&lt;font style=&quot;font-size: 20px&quot;&gt;&lt;b&gt;Умный кредитный кабинет&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Software System]&lt;/div&gt;" vertex="1">
+          <mxGeometry height="960" width="1080" x="440" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="spa" parent="1" style="rounded=1;arcSize=10;labelBackgroundColor=none;align=center;whiteSpace=wrap;html=1;fillColor=#438DD5;fontColor=#FFFFFF;strokeColor=#3C7FC0;fontSize=18;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;Веб-приложение&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: React, TypeScript, Ant Design]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;SPA: кабинет клиента и панель банка, разные роли. Отдаётся nginx&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="360" x="590" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" style="rounded=1;arcSize=10;labelBackgroundColor=none;align=center;whiteSpace=wrap;html=1;fillColor=#438DD5;fontColor=#FFFFFF;strokeColor=#3C7FC0;fontSize=18;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;API ядра&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: Python 3.12, FastAPI]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;Заявки и стейт-машина, проверки, скоринг и политика, андеррайтинг, роли, аудит. OpenAPI&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="360" x="590" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="db" parent="1" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;boundedLbl=1;rounded=0;labelBackgroundColor=none;fillColor=#438DD5;fontSize=18;fontColor=#FFFFFF;align=center;strokeColor=#3C7FC0;metaEdit=1;" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;База данных&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: PostgreSQL 16]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;Заявки, решения, аудит. Миграции Alembic&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="280" x="630" y="747.5" as="geometry" />
+        </mxCell>
+        <mxCell id="mock" parent="1" style="rounded=1;arcSize=10;labelBackgroundColor=none;align=center;whiteSpace=wrap;html=1;fillColor=#438DD5;fontColor=#FFFFFF;strokeColor=#3C7FC0;fontSize=18;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;Мок-сервер интеграций&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Container: WireMock]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;Эмулирует ЕГРЮЛ, ФНС и БКИ по синтетическим данным, умеет таймауты&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="360" x="1400" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" parent="1" style="rounded=1;arcSize=10;labelBackgroundColor=none;align=center;whiteSpace=wrap;html=1;fillColor=#8B8496;fontColor=#FFFFFF;strokeColor=#6E6879;fontSize=18;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];dashed=1;" value="&lt;font style=&quot;font-size: 24px&quot;&gt;&lt;b&gt;Локальная LLM&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Software System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;font color=&quot;#d9ecf8&quot;&gt;Ollama, Qwen3-4B. Опционально, вне Docker&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="330" x="1415" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="p_cl" style="edgeStyle=none;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#707070;strokeWidth=2;fontColor=#404040;fontSize=12;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;jumpStyle=none;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="spa" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Работает в кабинете&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="p_uw" style="edgeStyle=none;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#707070;strokeWidth=2;fontColor=#404040;fontSize=12;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;jumpStyle=none;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.85;entryDx=0;entryDy=0;" target="spa" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Работает в панели банка&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="spa" style="edgeStyle=none;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#707070;strokeWidth=2;fontColor=#404040;fontSize=12;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;jumpStyle=none;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="api" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Вызывает API&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;[JSON/HTTPS, JWT]&lt;/font&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="api" style="edgeStyle=none;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#707070;strokeWidth=2;fontColor=#404040;fontSize=12;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;jumpStyle=none;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="db" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Читает и пишет&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;[SQL, SQLAlchemy]&lt;/font&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="api" style="edgeStyle=none;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#707070;strokeWidth=2;fontColor=#404040;fontSize=12;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;jumpStyle=none;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="mock" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Запрашивает данные&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;компании&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;[HTTP/JSON, таймаут и ретраи]&lt;/font&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="api" style="edgeStyle=none;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#707070;strokeWidth=2;fontColor=#404040;fontSize=12;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;jumpStyle=none;dashed=1;exitX=1;exitY=0.15;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="llm" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Объяснение решения&lt;/font&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;[HTTP/JSON]&lt;/font&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
