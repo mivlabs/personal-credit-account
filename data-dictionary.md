@@ -15,6 +15,15 @@
 - Стереотипы: `dim_` — справочник (Dimension, обязательны `create_dttm`, `modify_dttm`, `action_ind_code`); `_aud` — аудит (Audit, только вставка, обязателен `create_dttm`). Остальные таблицы — основные сущности.
 - **Обязательность = NOT NULL.** UNIQUE указан только там, где он нужен, в описании атрибута. UNIQUE ≠ NOT NULL: он гарантирует только уникальность записанных значений.
 
+## Реализация в БД
+
+Схема создаётся миграцией Alembic (`backend/alembic/versions/0001_initial_schema.py`). Сверх словаря в БД есть:
+- триггер `set_modify_dttm()`: `modify_dttm` обновляется самой БД при любом UPDATE;
+- `loan_application_aud` только для вставки: UPDATE, DELETE и TRUNCATE запрещены триггером;
+- CHECK-ограничения на допустимые коды (`legal_form_code`, исходы решения, статусы оффера и проверок), формат ИНН и диапазон балла 0–100.
+
+Поля, помеченные «нет в drawio», добавлены 22.10 и ждут отрисовки на странице «Логическая модель».
+
 ## Домены
 
 | Код домена | Шаблон имени | Тип PostgreSQL | По умолчанию | Назначение |
@@ -44,6 +53,7 @@
 | company_name | dName | да | Наименование |
 | legal_form_code | dCode | да | `IP`, `OOO` |
 | registration_dt | dDate | нет | Дата регистрации, из ЕГРЮЛ |
+| legal_address_desc | dDescription | нет | Юридический адрес, из ЕГРЮЛ (US-02). **Добавлено 22.10, нет в drawio** |
 | create_dttm, modify_dttm | dDateTime | да | Технические |
 
 ### dim_user_role — Роль
@@ -51,6 +61,8 @@
 |---|---|---|---|
 | role_code | dCode | да | PK: `CLIENT`, `UNDERWRITER` |
 | role_name | dName | да | Название роли |
+| create_dttm, modify_dttm | dDateTime | да | Технические. **Добавлено 22.10 по соглашению для `dim_`, нет в drawio** |
+| action_ind_code | dCode | да | Индикатор изменения строки: I, U, D. **Добавлено 22.10, нет в drawio** |
 
 ### app_user — Пользователь
 | Атрибут | Домен | Обяз. | Описание |
@@ -83,6 +95,8 @@
 | status_code | dCode | да | PK: `DRAFT`, `SUBMITTED`, `CHECKING`, `EXTERNAL_CHECK`, `SCORING`, `NEEDS_INFO`, `MANUAL_REVIEW`, `APPROVED`, `COUNTER_OFFER`, `REJECTED`, `OFFER_ACCEPTED`, `SIGNING`, `ISSUED`, `DECLINED_BY_CLIENT` |
 | status_name | dName | да | Название для клиента |
 | final_bool | dBoolean | да | Конечный статус |
+| create_dttm, modify_dttm | dDateTime | да | Технические. **Добавлено 22.10 по соглашению для `dim_`, нет в drawio** |
+| action_ind_code | dCode | да | Индикатор изменения строки: I, U, D. **Добавлено 22.10, нет в drawio** |
 
 ### loan_application — Кредитная заявка
 | Атрибут | Домен | Обяз. | Описание |
@@ -98,6 +112,7 @@
 | debt_amt | dAmount | нет | Текущая долговая нагрузка |
 | idempotency_key_code | dCode | нет | Ключ идемпотентной подачи. UNIQUE |
 | submit_dttm | dDateTime | нет | Когда подана |
+| draft_step_qnt | dQuantity | нет | Шаг мастера, на котором остановился клиент (US-03). **Добавлено 22.10, нет в drawio** |
 | create_dttm, modify_dttm | dDateTime | да | Технические |
 
 ### external_check — Внешняя проверка
@@ -153,6 +168,7 @@
 | application_id | dIdentifier | да | FK → loan_application |
 | user_id | dIdentifier | нет | FK → app_user. Пусто, если запрос создала система |
 | request_desc | dDescription | да | Что нужно дозаполнить |
+| field_list_cval | dCharValue | да | JSON-массив имён полей анкеты, которые нужно дозаполнить (US-06), по умолчанию `[]`. **Добавлено 22.10, нет в drawio** |
 | request_status_code | dCode | да | `OPEN`, `ANSWERED` |
 | answer_dttm | dDateTime | нет | Когда клиент ответил |
 | create_dttm | dDateTime | да | Технический |
