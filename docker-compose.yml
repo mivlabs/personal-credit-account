@@ -1,0 +1,91 @@
+# Умный кредитный кабинет: запуск одной командой `docker compose up --build`.
+# Все значения имеют дефолты, поэтому .env не обязателен (см. .env.example).
+name: credit-cabinet
+
+services:
+  db:
+    image: postgres:16.15-alpine3.24
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-credit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-credit}
+      POSTGRES_DB: ${POSTGRES_DB:-credit}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${DB_HOST_PORT:-55432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      target: runtime
+    environment: &api-env
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-credit}:${POSTGRES_PASSWORD:-credit}@db:5432/${POSTGRES_DB:-credit}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-please-32+chars}
+      JWT_TTL_MINUTES: ${JWT_TTL_MINUTES:-480}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      DEMO_SIGN_CODE: ${DEMO_SIGN_CODE:-123456}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PIPELINE_STEP_DELAY_SECONDS: ${PIPELINE_STEP_DELAY_SECONDS:-1}
+      MOCKS_BASE_URL: http://mocks:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      # в slim-образе нет curl, поэтому проверяем средствами Python
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
+  # Моки внешних сервисов (ЕГРЮЛ, ФНС, БКИ). Стабы лежат в mocks/wiremock/ и принадлежат Мише.
+  mocks:
+    image: wiremock/wiremock:3.13.2
+    command: ["--global-response-templating"]
+    volumes:
+      - ./mocks/wiremock/mappings:/home/wiremock/mappings:ro
+      - ./mocks/wiremock/__files:/home/wiremock/__files:ro
+    ports:
+      - "${MOCKS_PORT:-8081}:8080"
+    restart: unless-stopped
+
+  # TODO (Маша): фронтенд. Раскомментировать, когда появится frontend/Dockerfile (React SPA, nginx).
+  # web:
+  #   build:
+  #     context: ./frontend
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy
+  #   ports:
+  #     - "${WEB_PORT:-3000}:80"
+  #   restart: unless-stopped
+
+  # Тесты ядра против настоящего PostgreSQL:
+  #   docker compose --profile test run --rm tests
+  tests:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: dev
+    environment:
+      <<: *api-env
+      RUN_MIGRATIONS: "0" # тесты сами создают тестовую БД и накатывают миграции
+      PIPELINE_STEP_DELAY_SECONDS: "0"
+      DOCS_DIR: /docs # тесты сверяют зафиксированные docs/api/openapi.yaml и docs/state-machine.md с кодом
+    volumes:
+      - ./docs:/docs:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
