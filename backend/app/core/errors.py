@@ -145,6 +145,41 @@ def _loc_to_field(loc: tuple[Any, ...]) -> str:
     return ".".join(parts) or "body"
 
 
+_RU_MESSAGES = {
+    "missing": "Обязательное поле",
+    "string_too_long": "Слишком длинное значение",
+    "string_type": "Ожидается текст",
+    "int_parsing": "Ожидается целое число",
+    "int_type": "Ожидается целое число",
+    "decimal_parsing": "Ожидается число",
+    "decimal_type": "Ожидается число",
+    "decimal_max_places": "Не больше 2 знаков после запятой",
+    "decimal_max_digits": "Слишком большое число",
+    "enum": "Недопустимое значение",
+    "json_invalid": "Тело запроса не является корректным JSON",
+    "model_attributes_type": "Ожидается объект JSON",
+    "greater_than": "Значение должно быть больше {gt}",
+    "greater_than_equal": "Значение должно быть не меньше {ge}",
+    "less_than_equal": "Значение должно быть не больше {le}",
+    "list_type": "Ожидается список",
+    "too_short": "Список не может быть пустым",
+}
+
+
+def _friendly_message(error: dict[str, Any]) -> str:
+    kind = error.get("type", "")
+    ctx = error.get("ctx") or {}
+    if kind == "string_too_short":
+        return "Поле не может быть пустым" if ctx.get("min_length") == 1 else "Слишком короткое значение"
+    template = _RU_MESSAGES.get(kind)
+    if template is None:
+        return str(error.get("msg", "Некорректное значение"))
+    try:
+        return template.format(**ctx)
+    except (KeyError, IndexError):
+        return template
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(ProblemError)
     async def _problem(request: Request, exc: ProblemError) -> JSONResponse:
@@ -161,7 +196,8 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
         errors = [
-            field_error(_loc_to_field(tuple(e["loc"])), e.get("msg", ""), e.get("type")) for e in exc.errors()
+            field_error(_loc_to_field(tuple(e["loc"])), _friendly_message(e), e.get("type"))
+            for e in exc.errors()
         ]
         return problem_response(
             request,

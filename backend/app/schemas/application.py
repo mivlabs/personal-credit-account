@@ -196,7 +196,7 @@ class ApplicationOut(ApiModel):
                         "amount": 1500000.0,
                         "termMonths": 24,
                         "rate": 16.9,
-                        "monthlyPayment": 74601.52,
+                        "monthlyPayment": 74091.34,
                         "status": "SENT",
                         "acceptedAt": None,
                         "signedAt": None,

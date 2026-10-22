@@ -1188,7 +1188,7 @@ components:
         offer:
           amount: 1500000.0
           id: 7
-          monthlyPayment: 74601.52
+          monthlyPayment: 74091.34
           rate: 16.9
           status: SENT
           termMonths: 24

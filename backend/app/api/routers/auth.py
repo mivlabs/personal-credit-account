@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from app.api.deps import AnyUser
+from app.api.deps import AnyUser, DbSession
 from app.api.responses import R401, R422
-from app.core.errors import NotImplementedProblem
 from app.schemas.auth import LoginRequest, LoginResponse, UserOut
+from app.services import auth as auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -14,9 +14,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     summary="Вход по логину и паролю",
     responses={**R401, **R422},
 )
-def login(body: LoginRequest) -> LoginResponse:
+def login(body: LoginRequest, session: DbSession) -> LoginResponse:
     """Возвращает JWT и данные пользователя. Неверный логин или пароль — 401 `INVALID_CREDENTIALS`."""
-    raise NotImplementedProblem()
+    return auth_service.login(session, body)
 
 
 @router.get(
@@ -25,6 +25,6 @@ def login(body: LoginRequest) -> LoginResponse:
     summary="Текущий пользователь",
     responses={**R401},
 )
-def getCurrentUser(user: AnyUser) -> UserOut:
+def getCurrentUser(user: AnyUser, session: DbSession) -> UserOut:
     """Данные пользователя, которому принадлежит токен."""
-    raise NotImplementedProblem()
+    return auth_service.current_user(session, user)

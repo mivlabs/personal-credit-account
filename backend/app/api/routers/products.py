@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from app.api.deps import ClientUser
+from app.api.deps import ClientUser, DbSession
 from app.api.responses import R401, R403
-from app.core.errors import NotImplementedProblem
 from app.schemas.product import ProductOut
+from app.services import catalog
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -14,6 +14,6 @@ router = APIRouter(prefix="/products", tags=["products"])
     summary="Каталог кредитных продуктов",
     responses={**R401, **R403},
 )
-def listProducts(user: ClientUser) -> list[ProductOut]:
+def listProducts(user: ClientUser, session: DbSession) -> list[ProductOut]:
     """Активные продукты с диапазонами суммы и срока, базовой ставкой и требованиями."""
-    raise NotImplementedProblem()
+    return catalog.list_products(session)

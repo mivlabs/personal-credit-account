@@ -4,12 +4,20 @@
 (документ генерируется скриптом app.scripts.export_state_machine, тест сверяет файл с кодом).
 """
 
+import logging
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.core.errors import ForbiddenError, InvalidTransitionError
+from app.db.models import LoanApplication, LoanApplicationAud
 from app.domain.enums import FINAL_STATUSES, STATUS_NAMES, ApplicationStatus
 
 S = ApplicationStatus
+logger = logging.getLogger(__name__)
 
 
 class Actor(StrEnum):
@@ -93,6 +101,79 @@ def is_allowed(source: ApplicationStatus, target: ApplicationStatus, actor: Acto
 
 def targets_from(source: ApplicationStatus) -> list[ApplicationStatus]:
     return [t.target for t in TRANSITIONS if t.source == source]
+
+
+def record_creation(
+    session: Session, application: LoanApplication, actor_user_id: int | None
+) -> LoanApplicationAud:
+    """Аудит создания черновика: from_status_code = NULL."""
+    row = LoanApplicationAud(
+        application_id=application.application_id,
+        user_id=actor_user_id,
+        from_status_code=None,
+        to_status_code=application.status_code,
+        event_desc="Черновик создан",
+        create_dttm=datetime.now(UTC),
+    )
+    session.add(row)
+    session.flush()
+    return row
+
+
+def transition(
+    session: Session,
+    application: LoanApplication,
+    to_status: ApplicationStatus,
+    actor_user_id: int | None,
+    comment: str | None = None,
+    *,
+    actor: Actor | None = None,
+) -> LoanApplicationAud:
+    """Единственное место смены статуса заявки.
+
+    Проверяет переход по таблице TRANSITIONS, меняет статус и пишет loan_application_aud в той же
+    транзакции (коммитит вызывающий). Строка заявки блокируется на время транзакции, поэтому параллельный
+    переход не пройдёт молча. Недопустимый переход — 409 INVALID_TRANSITION.
+    """
+    # Блокируем строку и читаем актуальный статус из БД, а не из объекта в памяти
+    db_status = session.execute(
+        select(LoanApplication.status_code)
+        .where(LoanApplication.application_id == application.application_id)
+        .with_for_update()
+    ).scalar_one()
+    source = ApplicationStatus(db_status)
+    if source.value != application.status_code:
+        raise InvalidTransitionError("Статус заявки уже изменился, обновите страницу и повторите действие")
+
+    rule = find_transition(source, to_status)
+    if rule is None:
+        raise InvalidTransitionError(
+            f"Из статуса «{STATUS_NAMES[source]}» нельзя перейти в «{STATUS_NAMES[to_status]}»"
+        )
+    if actor is not None and rule.actor != actor:
+        raise ForbiddenError(
+            f"Переход «{STATUS_NAMES[source]}» → «{STATUS_NAMES[to_status]}» выполняет "
+            f"{ACTOR_NAMES[rule.actor].lower()}"
+        )
+
+    application.status_code = to_status.value
+    row = LoanApplicationAud(
+        application_id=application.application_id,
+        user_id=actor_user_id,
+        from_status_code=source.value,
+        to_status_code=to_status.value,
+        event_desc=comment,
+        create_dttm=datetime.now(UTC),
+    )
+    session.add(row)
+    session.flush()
+    logger.info(
+        "Переход статуса %s → %s",
+        source.value,
+        to_status.value,
+        extra={"from_status": source.value, "to_status": to_status.value, "actor_user_id": actor_user_id},
+    )
+    return row
 
 
 def render_state_machine_md() -> str:

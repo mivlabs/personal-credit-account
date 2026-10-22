@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     demo_sign_code: str = "123456"
     mocks_base_url: str = "http://localhost:8081"
     log_level: str = "INFO"
+    # Пауза между шагами конвейера: на демо клиент успевает увидеть этапы. В тестах 0.
+    pipeline_step_delay_seconds: float = 0.0
 
     @property
     def cors_origin_list(self) -> list[str]:

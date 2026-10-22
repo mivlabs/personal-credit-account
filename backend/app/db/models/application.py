@@ -47,8 +47,9 @@ class LoanApplication(Base):
     create_dttm: Mapped[DateTime_] = create_dttm_column()
     modify_dttm: Mapped[DateTime_] = modify_dttm_column()
 
-    company: Mapped[Company] = relationship(lazy="joined")
-    product: Mapped[DimCreditProduct] = relationship(lazy="joined")
+    # innerjoin: FK обязательны, а INNER JOIN допускает SELECT … FOR UPDATE
+    company: Mapped[Company] = relationship(lazy="joined", innerjoin=True)
+    product: Mapped[DimCreditProduct] = relationship(lazy="joined", innerjoin=True)
 
 
 class ExternalCheck(Base):
