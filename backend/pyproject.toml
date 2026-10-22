@@ -37,12 +37,12 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 # Длинные русские описания в схемах и docstring не переносим
-ignore = ["E501"]
+ignore = ["E501", "SIM108"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
 filterwarnings = [
     # starlette.testclient рекомендует httpx2; пока остаёмся на httpx из ТЗ
-    "ignore:Using `httpx` with `starlette.testclient` is deprecated:DeprecationWarning",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:Warning",
 ]

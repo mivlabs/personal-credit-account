@@ -4,15 +4,14 @@
 Файл фиксируется в git: на нём стоит клиент фронта, а тест падает, если файл разошёлся с кодом.
 """
 
-from pathlib import Path
 from typing import Any
 
 import yaml
 
 from app.main import app
+from app.scripts.paths import docs_dir
 
-# backend/app/scripts/export_openapi.py -> корень репозитория
-DEFAULT_OUTPUT = Path(__file__).resolve().parents[3] / "docs" / "api" / "openapi.yaml"
+DEFAULT_OUTPUT = docs_dir() / "api" / "openapi.yaml"
 
 
 class _NoAliasDumper(yaml.SafeDumper):

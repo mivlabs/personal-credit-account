@@ -3,12 +3,10 @@
 Запуск из каталога backend: uv run python -m app.scripts.export_state_machine
 """
 
-from pathlib import Path
-
 from app.domain.state_machine import render_state_machine_md
+from app.scripts.paths import docs_dir
 
-# backend/app/scripts/export_state_machine.py -> корень репозитория
-DEFAULT_OUTPUT = Path(__file__).resolve().parents[3] / "docs" / "state-machine.md"
+DEFAULT_OUTPUT = docs_dir() / "state-machine.md"
 
 
 def main() -> None:
