@@ -1,6 +1,6 @@
 # Модель данных
 
-Исходная модель: [словарь](../data-dictionary.md), [draw.io](../data-model.drawio). Бизнес-сущности сохранены. Миграция 0003 добавляет `credit_decision.decision_snapshot` (JSONB, nullable): структурированный снимок решения. Бэкфилл: у AUTO-решений JSON из `comment_desc` переносится в `decision_snapshot`, `comment_desc` становится NULL; битый JSON остаётся в `comment_desc`. Миграция 0002 добавляет:
+Исходная модель: [словарь](design/data-dictionary.md), [draw.io](design/data-model.drawio). Бизнес-сущности сохранены. Миграция 0003 добавляет `credit_decision.decision_snapshot` (JSONB, nullable): структурированный снимок решения. Бэкфилл: у AUTO-решений JSON из `comment_desc` переносится в `decision_snapshot`, `comment_desc` становится NULL; битый JSON остаётся в `comment_desc`. Миграция 0002 добавляет:
 
 - idempotency_record: record_id, user_id, application_id, operation_code, key_code, request_hash_code, response_cval, create_dttm. UNIQUE(user_id, operation_code, key_code).
 - disbursement: disbursement_id, application_id, offer_id, amount_amt, create_dttm. UNIQUE(application_id). Только симуляция выдачи.

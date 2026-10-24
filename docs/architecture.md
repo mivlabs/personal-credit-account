@@ -1,6 +1,6 @@
 # Архитектура реализации
 
-Исходные C4: [контекст](../c4/c4-l1-context.png), [контейнеры](../c4/c4-l2-containers.png). Процесс: [BPMN TO BE](../bpmn-to-be.bpmn). Система остаётся модульным монолитом.
+Исходные C4: [контекст](design/c4/c4-l1-context.png), [контейнеры](design/c4/c4-l2-containers.png). Процесс: [BPMN TO BE](design/bpmn-to-be.bpmn). Система остаётся модульным монолитом.
 
 ```mermaid
 flowchart LR

@@ -147,7 +147,7 @@ uv run python -m app.scripts.export_openapi        # docs/api/openapi.yaml
 uv run python -m app.scripts.export_state_machine  # docs/state-machine.md
 ```
 
-Журнал принятых решений: [`docs/decisions.md`](docs/decisions.md). Словарь данных: [`data-dictionary.md`](data-dictionary.md).
+Журнал принятых решений: [`docs/decisions.md`](docs/decisions.md). Словарь данных: [`docs/design/data-dictionary.md`](docs/design/data-dictionary.md).
 
 ### Переменные окружения
 
