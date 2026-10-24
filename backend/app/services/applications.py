@@ -260,10 +260,14 @@ def accept_offer(session: Session, user: AuthUser, application_id: int) -> Accep
     transition(session, app, S.OFFER_ACCEPTED, user.id, "Клиент принял предложение", actor=Actor.CLIENT)
     transition(session, app, S.SIGNING, None, "Договор подготовлен к подписанию", actor=Actor.SYSTEM)
     _commit(session)
-    code = get_settings().demo_sign_code
+    settings = get_settings()
     return AcceptOfferResponse(
         application=application_out(session, app),
-        sign_hint=f"Демо-режим: для подписания введите код {code}",
+        sign_hint=(
+            f"Демо-режим: для подписания введите код {settings.demo_sign_code}"
+            if settings.demo_mode
+            else None
+        ),
     )
 
 

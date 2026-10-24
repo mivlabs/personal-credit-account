@@ -21,6 +21,7 @@ _DEFAULT_TITLES = {
     405: "Метод не поддерживается",
     409: "Конфликт состояния",
     422: "Ошибка валидации",
+    429: "Слишком много запросов",
     500: "Внутренняя ошибка сервера",
     501: "Не реализовано",
     503: "Сервис недоступен",
@@ -95,6 +96,15 @@ class IdempotencyConflictError(ProblemError):
     status = 409
     code = ErrorCode.IDEMPOTENCY_CONFLICT
     title = "Конфликт идемпотентности"
+
+
+class TooManyRequestsError(ProblemError):
+    status = 429
+    code = ErrorCode.TOO_MANY_REQUESTS
+    title = _DEFAULT_TITLES[429]
+
+    def __init__(self, detail: str, *, retry_after: int) -> None:
+        super().__init__(detail, headers={"Retry-After": str(retry_after)})
 
 
 class ValidationProblem(ProblemError):

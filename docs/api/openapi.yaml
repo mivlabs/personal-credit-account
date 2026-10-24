@@ -35,7 +35,10 @@ paths:
       tags:
       - auth
       summary: Вход по логину и паролю
-      description: Возвращает JWT и данные пользователя. Неверный логин или пароль — 401 `INVALID_CREDENTIALS`.
+      description: 'Возвращает JWT и данные пользователя. Неверный логин или пароль — 401 `INVALID_CREDENTIALS`.
+
+
+        5 неудачных попыток за 5 минут для связки логин + IP дают 429 `TOO_MANY_REQUESTS` с `Retry-After`.'
       operationId: login
       requestBody:
         content:
@@ -58,6 +61,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '422':
           description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '429':
+          description: Слишком много неудачных попыток входа; смотрите заголовок `Retry-After`
           content:
             application/problem+json:
               schema:
@@ -1240,9 +1249,11 @@ components:
         application:
           $ref: '#/components/schemas/ApplicationOut'
         signHint:
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
           title: Signhint
-          description: Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE)
+          description: Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE); только при DEMO_MODE=true
           examples:
           - 'Демо-режим: для подписания введите код 123456'
       type: object
@@ -2001,6 +2012,7 @@ components:
       - FORBIDDEN
       - UNAUTHORIZED
       - INVALID_CREDENTIALS
+      - TOO_MANY_REQUESTS
       - IDEMPOTENCY_CONFLICT
       - NOT_IMPLEMENTED
       - SERVICE_UNAVAILABLE

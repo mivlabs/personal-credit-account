@@ -16,6 +16,8 @@ export interface paths {
         /**
          * Вход по логину и паролю
          * @description Возвращает JWT и данные пользователя. Неверный логин или пароль — 401 `INVALID_CREDENTIALS`.
+         *
+         *     5 неудачных попыток за 5 минут для связки логин + IP дают 429 `TOO_MANY_REQUESTS` с `Retry-After`.
          */
         post: operations["login"];
         delete?: never;
@@ -451,10 +453,10 @@ export interface components {
             application: components["schemas"]["ApplicationOut"];
             /**
              * Signhint
-             * @description Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE)
+             * @description Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE); только при DEMO_MODE=true
              * @example Демо-режим: для подписания введите код 123456
              */
-            signHint: string;
+            signHint: string | null;
         };
         /**
          * ApplicationCreate
@@ -940,7 +942,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "EXPIRED" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
+        ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "EXPIRED" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "TOO_MANY_REQUESTS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
         /** ExplainedFactor */
         ExplainedFactor: {
             /** Code */
@@ -1759,6 +1761,15 @@ export interface operations {
             };
             /** @description Ошибка валидации: `errors[]` указывает на поля */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Слишком много неудачных попыток входа; смотрите заголовок `Retry-After` */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

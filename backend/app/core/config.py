@@ -12,10 +12,17 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql+psycopg://credit:credit@localhost:5432/credit"
-    jwt_secret: str = Field(default="change-me-in-production-please-32+chars", min_length=16)
+    # Пусто, старое демо-значение или короче 32 символов: при старте создаётся случайный секрет (core/security.py)
+    jwt_secret: str = ""
+    jwt_secret_file: str = "/app/data/jwt_secret"
     jwt_ttl_minutes: int = 480
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
     demo_sign_code: str = "123456"
+    # Демо-подсказка с кодом подписи в ответе offer/accept; в боевом режиме отключить
+    demo_mode: bool = True
+    # Ограничение попыток входа (логин + IP, в памяти процесса)
+    login_max_failures: int = Field(default=5, gt=0)
+    login_window_seconds: int = Field(default=300, gt=0)
     mocks_base_url: str = "http://localhost:8081"
     log_level: str = "INFO"
     # Пауза между шагами конвейера: на демо клиент успевает увидеть этапы. В тестах 0.

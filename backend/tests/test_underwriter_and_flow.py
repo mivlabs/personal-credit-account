@@ -216,3 +216,15 @@ def test_needs_info_roundtrip_restarts_pipeline(client: TestClient, fast, underw
         f"/api/v1/applications/{app['id']}/missing-info", headers=fast, json={"revenueAmount": 1}
     )
     assert again.status_code == 409 and again.json()["code"] == "INVALID_TRANSITION"
+
+
+def test_sign_hint_only_in_demo_mode(client: TestClient, underwriter, flow: Flow, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "demo_mode", False)
+    app = flow.submitted(requestedAmount=1_500_000, termMonths=24)
+    decide(client, underwriter, app["id"], outcome="APPROVED", comment="ok", clientReason="ok")
+    accepted = client.post(f"/api/v1/applications/{app['id']}/offer/accept", headers=flow.headers)
+    assert accepted.status_code == 200
+    assert accepted.json().get("signHint") is None
+    assert "123456" not in accepted.text

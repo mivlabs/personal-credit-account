@@ -39,6 +39,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 COPY --from=builder --chown=app:app /app /app
+# каталог для сгенерированного JWT-секрета (named volume наследует владельца)
+RUN mkdir -p /app/data && chown app:app /app/data
 USER app
 EXPOSE 8000
 # sh вместо прямого запуска: бит исполнения теряется при коммите с Windows

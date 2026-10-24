@@ -335,8 +335,9 @@ class TimelineOut(ApiModel):
 
 class AcceptOfferResponse(ApiModel):
     application: ApplicationOut
-    sign_hint: str = Field(
-        description="Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE)",
+    sign_hint: str | None = Field(
+        default=None,
+        description="Подсказка для демо с кодом подписи (код берётся из DEMO_SIGN_CODE); только при DEMO_MODE=true",
         examples=["Демо-режим: для подписания введите код 123456"],
     )
 

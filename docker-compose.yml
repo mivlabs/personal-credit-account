@@ -26,7 +26,9 @@ services:
       target: runtime
     environment: &api-env
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-credit}:${POSTGRES_PASSWORD:-credit}@db:5432/${POSTGRES_DB:-credit}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-please-32+chars}
+      # Пусто/слабо/демо-значение: при старте создаётся случайный секрет и хранится на volume jwtdata
+      JWT_SECRET: ${JWT_SECRET:-}
+      DEMO_MODE: ${DEMO_MODE:-true}
       JWT_TTL_MINUTES: ${JWT_TTL_MINUTES:-480}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
       DEMO_SIGN_CODE: ${DEMO_SIGN_CODE:-123456}
@@ -39,6 +41,8 @@ services:
       AS_OF_DATE: ${AS_OF_DATE:-}
       OFFER_TTL_DAYS: ${OFFER_TTL_DAYS:-30}
       INFO_REQUEST_TTL_DAYS: ${INFO_REQUEST_TTL_DAYS:-14}
+    volumes:
+      - jwtdata:/app/data
     depends_on:
       db:
         condition: service_healthy
@@ -109,3 +113,4 @@ services:
 
 volumes:
   pgdata:
+  jwtdata:
