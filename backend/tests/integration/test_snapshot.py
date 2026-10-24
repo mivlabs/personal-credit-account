@@ -95,6 +95,28 @@ def test_client_gets_explanation_without_internal_comment(client, underwriter, f
     assert mine["snapshot"]["decidedBy"]["name"]
 
 
+def test_manual_decision_uses_payment_load_limit_from_snapshot(client, underwriter, flow, external):
+    # выручка 12 млн, долг 1 млн, срок 12 мес.: лимит ограничен платёжной нагрузкой, а не долей выручки
+    external({**BORDERLINE_LIMIT, "BKI": {"debtAmount": "1000000", "overdueDays": 60}})
+    app = submit(flow, 5_000_000, termMonths=12)
+    snap = screen(client, underwriter, app["id"])["decisions"][0]["snapshot"]
+    assert snap["limit"]["binding"] == "PAYMENT_LOAD"
+    auto_limit = float(snap["limit"]["value"])
+    assert 0 < auto_limit < 5_000_000
+    assert screen(client, underwriter, app["id"])["autoLimit"] == auto_limit
+
+    over = client.post(
+        DECISION.format(app["id"]), headers=underwriter, json={"outcome": "APPROVED", "comment": "ок"}
+    )
+    assert over.status_code == 422 and over.json()["errors"][0]["field"] == "overrideLimit"
+    ok = client.post(
+        DECISION.format(app["id"]),
+        headers=underwriter,
+        json={"outcome": "COUNTER_OFFER", "comment": "ок", "offerAmount": auto_limit},
+    )
+    assert ok.status_code == 200, ok.text
+
+
 def test_manual_above_limit_requires_override(client, underwriter, flow, external):
     external(BORDERLINE_LIMIT)  # лимит 3 000 000
     app = submit(flow, 4_000_000)
