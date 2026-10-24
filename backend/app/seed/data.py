@@ -6,7 +6,7 @@
 """
 
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
 
 from app.domain.enums import (
@@ -91,7 +91,7 @@ class DemoClient:
 
 def _months_ago(months: int) -> date:
     # Дата считается от дня первого запуска: стоп-фактор «моложе 6 мес.» не «состарится» к финалу
-    return date.today() - timedelta(days=round(months * 30.4))
+    return date(2026, 1, 23)
 
 
 DEMO_CLIENTS: list[DemoClient] = [

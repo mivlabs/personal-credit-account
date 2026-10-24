@@ -31,10 +31,12 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
       DEMO_SIGN_CODE: ${DEMO_SIGN_CODE:-123456}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      PIPELINE_STEP_DELAY_SECONDS: ${PIPELINE_STEP_DELAY_SECONDS:-1}
+      PIPELINE_STEP_DELAY_SECONDS: "0"
       MOCKS_BASE_URL: http://mocks:8080
     depends_on:
       db:
+        condition: service_healthy
+      mocks:
         condition: service_healthy
     ports:
       - "${API_PORT:-8000}:8000"
@@ -51,6 +53,11 @@ services:
   mocks:
     image: wiremock/wiremock:3.13.2
     command: ["--global-response-templating"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/__admin/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     volumes:
       - ./mocks/wiremock/mappings:/home/wiremock/mappings:ro
       - ./mocks/wiremock/__files:/home/wiremock/__files:ro
@@ -58,16 +65,20 @@ services:
       - "${MOCKS_PORT:-8081}:8080"
     restart: unless-stopped
 
-  # TODO (Маша): фронтенд. Раскомментировать, когда появится frontend/Dockerfile (React SPA, nginx).
-  # web:
-  #   build:
-  #     context: ./frontend
-  #   depends_on:
-  #     api:
-  #       condition: service_healthy
-  #   ports:
-  #     - "${WEB_PORT:-3000}:80"
-  #   restart: unless-stopped
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
 
   # Тесты ядра против настоящего PostgreSQL:
   #   docker compose --profile test run --rm tests
@@ -85,6 +96,8 @@ services:
       - ./docs:/docs:ro
     depends_on:
       db:
+        condition: service_healthy
+      mocks:
         condition: service_healthy
 
 volumes:

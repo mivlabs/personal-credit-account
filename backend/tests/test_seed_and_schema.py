@@ -77,10 +77,10 @@ def test_models_match_migrations():
     assert diff == []
 
 
-def test_schema_has_twelve_tables_and_expected_indexes():
+def test_schema_has_fourteen_tables_and_expected_indexes():
     insp = inspect(get_engine())
     tables = set(insp.get_table_names()) - {"alembic_version"}
-    assert len(tables) == 12
+    assert len(tables) == 14
     aud_indexes = {tuple(i["column_names"]) for i in insp.get_indexes("loan_application_aud")}
     assert ("application_id", "create_dttm") in aud_indexes
     assert ("status_code",) in {tuple(i["column_names"]) for i in insp.get_indexes("loan_application")}

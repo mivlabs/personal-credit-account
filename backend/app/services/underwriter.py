@@ -63,21 +63,26 @@ def _entered_manual_review():
     )
 
 
-def get_queue(session: Session, limit: int, offset: int) -> QueueOut:
+def get_queue(
+    session: Session, limit: int, offset: int, status: ApplicationStatus | None = S.MANUAL_REVIEW
+) -> QueueOut:
     entered = _entered_manual_review()
     rows = session.execute(
         select(LoanApplication, LoanApplicationAud)
-        .join(entered, entered.c.application_id == LoanApplication.application_id)
-        .join(LoanApplicationAud, LoanApplicationAud.audit_id == entered.c.aud_id)
-        .where(LoanApplication.status_code == S.MANUAL_REVIEW.value)
-        .order_by(LoanApplicationAud.create_dttm, LoanApplicationAud.audit_id)  # старые сверху
+        .outerjoin(entered, entered.c.application_id == LoanApplication.application_id)
+        .outerjoin(LoanApplicationAud, LoanApplicationAud.audit_id == entered.c.aud_id)
+        .where(LoanApplication.status_code == status.value if status else True)
+        .order_by(
+            func.coalesce(LoanApplicationAud.create_dttm, LoanApplication.create_dttm),
+            LoanApplication.application_id,
+        )  # старые сверху
         .limit(limit)
         .offset(offset)
     ).all()
     total = session.scalar(
         select(func.count())
         .select_from(LoanApplication)
-        .where(LoanApplication.status_code == S.MANUAL_REVIEW.value)
+        .where(LoanApplication.status_code == status.value if status else True)
     )
 
     ids = [app.application_id for app, _ in rows]
@@ -94,14 +99,18 @@ def get_queue(session: Session, limit: int, offset: int) -> QueueOut:
     items = [
         QueueItem(
             application_id=app.application_id,
+            status=app.status_code,
+            status_name=status_name(app.status_code),
             company_name=app.company.company_name,
             product_code=app.product.product_code,
             product_name=app.product.product_name,
             requested_amount=app.requested_amt,
             score=scores.get(app.application_id),
             submitted_at=app.submit_dttm or app.create_dttm,
-            waiting_seconds=max(0, int((now - aud.create_dttm).total_seconds())),
-            queue_reason=aud.event_desc or _DEFAULT_QUEUE_REASON,
+            waiting_seconds=max(
+                0, int((now - (aud.create_dttm if aud else app.create_dttm)).total_seconds())
+            ),
+            queue_reason=(aud.event_desc if aud else None) or status_name(app.status_code),
         )
         for app, aud in rows
     ]
@@ -116,6 +125,16 @@ def _parse_json(raw: str | None):
     except ValueError:
         return {"raw": raw}
     return value if isinstance(value, dict) else {"value": value}
+
+
+def _factor_fields(raw):
+    try:
+        parsed = json.loads(raw) if raw else None
+    except (TypeError, ValueError):
+        parsed = None
+    if isinstance(parsed, dict) and "value" in parsed:
+        return {"value": parsed["value"], "explanation": parsed.get("explanation", "")}
+    return {"value": raw, "explanation": ""}
 
 
 def get_underwriter_application(
@@ -154,7 +173,7 @@ def get_underwriter_application(
                 break
 
     return UnderwriterApplicationOut(
-        application=application_out(session, app),
+        application=application_out(session, app, "UNDERWRITER"),
         company=company_out(app.company),
         external_checks=[
             ExternalCheckOut(
@@ -178,7 +197,7 @@ def get_underwriter_application(
                 decided_by=names.get(d.user_id),
                 created_at=d.create_dttm,
                 factors=[
-                    DecisionFactorOut(code=f.factor_code, value=f.factor_cval, points=f.point_qnt)
+                    DecisionFactorOut(code=f.factor_code, points=f.point_qnt, **_factor_fields(f.factor_cval))
                     for f in d.factors
                 ],
             )
@@ -248,7 +267,7 @@ def make_decision(
         audit_comment=body.comment,
     )
     session.commit()
-    return application_out(session, app)
+    return application_out(session, app, user.role.value)
 
 
 def get_audit(session: Session, user: AuthUser, application_id: int) -> list[AuditEntryOut]:

@@ -109,13 +109,13 @@ def info_request_out(r: InfoRequest) -> InfoRequestOut:
     )
 
 
-def offer_out(o: LoanOffer) -> OfferOut:
+def offer_out(o: LoanOffer, product_code: str = "WORKING_CAPITAL") -> OfferOut:
     return OfferOut(
         id=o.offer_id,
         amount=o.offer_amt,
         term_months=o.term_qnt,
         rate=o.rate_nval,
-        monthly_payment=o.monthly_payment_amt,
+        monthly_payment=None if product_code == "OVERDRAFT" else o.monthly_payment_amt,
         status=o.offer_status_code,
         accepted_at=o.accept_dttm,
         signed_at=o.sign_dttm,
@@ -164,7 +164,7 @@ def open_info_requests(session: Session, application_id: int) -> list[InfoReques
     )
 
 
-def application_out(session: Session, app: LoanApplication) -> ApplicationOut:
+def application_out(session: Session, app: LoanApplication, role: str = "CLIENT") -> ApplicationOut:
     # Триггеры БД и коммиты меняют строку «за спиной» объекта: перечитываем актуальное состояние
     session.refresh(app)
     status = ApplicationStatus(app.status_code)
@@ -172,7 +172,19 @@ def application_out(session: Session, app: LoanApplication) -> ApplicationOut:
     decision = latest_decision(session, app.application_id) if status in _DECISION_VISIBLE else None
     offer = latest_offer(session, app.application_id)
 
+    actions = (
+        {
+            S.DRAFT: ["edit", "submit"],
+            S.NEEDS_INFO: ["answer_info"],
+            S.APPROVED: ["accept_offer", "decline_offer"],
+            S.COUNTER_OFFER: ["accept_offer", "decline_offer"],
+            S.SIGNING: ["sign"],
+        }.get(status, [])
+        if role == "CLIENT"
+        else (["decide"] if status == S.MANUAL_REVIEW else [])
+    )
     return ApplicationOut(
+        available_actions=actions,
         id=app.application_id,
         company_id=app.company_id,
         product=product_out(app.product),
@@ -196,7 +208,7 @@ def application_out(session: Session, app: LoanApplication) -> ApplicationOut:
             if decision
             else None
         ),
-        offer=offer_out(offer) if offer else None,
+        offer=offer_out(offer, app.product.product_code) if offer else None,
     )
 
 

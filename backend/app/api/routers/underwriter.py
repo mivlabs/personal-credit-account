@@ -1,9 +1,10 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Body, Path, Query
 
 from app.api.deps import DbSession, UnderwriterUser
 from app.api.responses import R401, R403, R404, R409, R422
+from app.domain.enums import ApplicationStatus
 from app.schemas.application import ApplicationOut
 from app.schemas.underwriter import (
     DECISION_REQUEST_EXAMPLES,
@@ -45,9 +46,12 @@ def getUnderwriterQueue(
     session: DbSession,
     limit: Annotated[int, Query(ge=1, le=100, description="Размер страницы")] = 20,
     offset: Annotated[int, Query(ge=0, description="Сколько записей пропустить")] = 0,
+    status_filter: Annotated[
+        ApplicationStatus | Literal["ALL"], Query(alias="status")
+    ] = ApplicationStatus.MANUAL_REVIEW,
 ) -> QueueOut:
-    """Заявки в статусе `MANUAL_REVIEW`, по времени ожидания: самые старые сверху."""
-    return service.get_queue(session, limit, offset)
+    """По умолчанию MANUAL_REVIEW, старые сверху. Фильтр status=ALL показывает все состояния."""
+    return service.get_queue(session, limit, offset, None if status_filter == "ALL" else status_filter)
 
 
 @router.get(

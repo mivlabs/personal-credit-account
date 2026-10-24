@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/egrul/7701000003"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "active": true,
+      "registrationDate": "2026-01-23",
+      "industry": "construction",
+      "name": "ООО «НовоСтрой Групп»",
+      "ogrn": "1257700000033",
+      "legalAddress": "г. Санкт-Петербург, Лиговский пр-т, д. 50, офис 12"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+version: demo-2026-10-23
+snapshot_date: '2026-10-23'
+approve_threshold: 70
+reject_threshold: 40
+min_company_age_months: 6
+max_overdue_days: 90
+revenue_limit_share: '0.50'
+debt_limit_share: '1.00'
+age_bands: [[12, 5], [24, 15], [99999, 20]]
+revenue_bands: [[3000000, 5], [10000000, 15], [999999999999999999, 25]]
+debt_bands: [['0.20', 25], ['0.50', 15], ['1.00', 10], ['999999999999999999', 0]]
+overdue_bands: [[0, 20], [30, 10], [90, 0]]
+industry_points: {services: 10, trade: 10, manufacturing: 10, construction: 5, other: 5}
+base_rate_pct: '16.0'
+base_rate_date: '2026-10-23'
+base_rate_source: 'Demo assumption; not the current Bank of Russia key rate'
+product_spreads: {WORKING_CAPITAL: '2.5', EQUIPMENT: '0.9', OVERDRAFT: '5.0'}
+risk_surcharge_pct: '1.0'
+low_risk_threshold: 85

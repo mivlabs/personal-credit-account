@@ -4,6 +4,7 @@ from pydantic import AwareDatetime, ConfigDict, Field, StringConstraints
 
 from app.domain.enums import (
     ApplicationField,
+    ApplicationStatus,
     CheckSource,
     CheckStatus,
     DecisionOutcome,
@@ -17,11 +18,13 @@ from app.schemas.company import CompanyOut
 
 
 class QueueItem(ApiModel):
+    status: ApplicationStatus = ApplicationStatus.MANUAL_REVIEW
+    status_name: str = "На рассмотрении у специалиста"
     application_id: int
     company_name: str
     product_code: ProductCode
     product_name: str
-    requested_amount: Money
+    requested_amount: Money | None
     score: int | None = Field(default=None, description="Балл скоринга 0–100; пусто, если балла нет")
     submitted_at: AwareDatetime
     waiting_seconds: int = Field(description="Сколько заявка ждёт в очереди, секунд")
@@ -63,6 +66,7 @@ class ExternalCheckOut(ApiModel):
 
 
 class DecisionFactorOut(ApiModel):
+    explanation: str = ""
     code: str = Field(examples=["REVENUE"])
     value: str | None = Field(default=None, description="Значение фактора на момент решения")
     points: int = Field(description="Баллы по скоринг-карте")

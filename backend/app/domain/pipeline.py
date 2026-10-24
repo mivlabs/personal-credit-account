@@ -1,18 +1,15 @@
 """Конвейер обработки заявки после подачи (и после дозаполнения данных).
 
-SUBMITTED → CHECKING → EXTERNAL_CHECK → SCORING → итог решения. Каждый шаг делает ровно один переход
-в отдельной транзакции, поэтому клиент видит промежуточные статусы. Запускается через BackgroundTasks
-FastAPI (без очередей). Сегодня внешние проверки отключены, а движок решения отправляет всё на ручную проверку.
+SUBMITTED → CHECKING → EXTERNAL_CHECK → SCORING → итог решения.
+Все переходы, проверки и решение атомарны с командой подачи.
 """
 
 import json
 import logging
-import time
 from collections.abc import Callable
 
 from sqlalchemy.orm import Session
 
-from app.core.config import get_settings
 from app.core.logging import application_id_var
 from app.db.models import InfoRequest, LoanApplication
 from app.db.session import get_sessionmaker
@@ -59,14 +56,18 @@ def _check_completeness(session: Session, app: LoanApplication) -> None:
 
 
 def _external_checks(session: Session, app: LoanApplication) -> None:
-    client = get_external_checks_client()
-    client.fetch_all(app.application_id, app.company)
+    client = get_external_checks_client(session)
+    results = client.fetch_all(app.application_id, app.company)
+    session.info["decision_external_snapshot"] = {
+        source.value: {"status": result.status.value, "data": result.data}
+        for source, result in results.results.items()
+    }
     transition(
         session,
         app,
         S.SCORING,
         None,
-        "Внешние проверки пока отключены",
+        "Ответы внешних сервисов сохранены",
         actor=Actor.SYSTEM,
     )
 
@@ -85,25 +86,22 @@ _HANDLERS: dict[ApplicationStatus, Callable[[Session, LoanApplication], None]] =
 }
 
 
-def run_pipeline(application_id: int) -> None:
-    """Точка входа для BackgroundTasks: ведёт заявку, пока её ведёт система."""
-    token = application_id_var.set(application_id)
-    delay = get_settings().pipeline_step_delay_seconds
+def process_pipeline(session: Session, app: LoanApplication) -> None:
+    """Runs under the application row lock, atomically with submission and its audit."""
+    token = application_id_var.set(app.application_id)
     try:
         for _ in range(MAX_STEPS):
-            with get_sessionmaker()() as session, session.begin():
-                app = session.get(LoanApplication, application_id)
-                if app is None:
-                    logger.error("Заявка для конвейера не найдена")
-                    return
-                handler = _HANDLERS.get(ApplicationStatus(app.status_code))
-                if handler is None:
-                    return
-                handler(session, app)
-            if delay:
-                time.sleep(delay)
-    except Exception:
-        # Заявка остаётся в последнем записанном статусе; восстановление зависших заявок — отдельная задача
-        logger.exception("Сбой конвейера обработки заявки")
+            handler = _HANDLERS.get(ApplicationStatus(app.status_code))
+            if handler is None:
+                return
+            handler(session, app)
+        raise RuntimeError("Pipeline exceeded its bounded number of steps")
     finally:
         application_id_var.reset(token)
+
+
+def run_pipeline(application_id: int) -> None:
+    with get_sessionmaker()() as session, session.begin():
+        app = session.get(LoanApplication, application_id, with_for_update=True)
+        if app is not None:
+            process_pipeline(session, app)

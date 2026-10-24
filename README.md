@@ -3,8 +3,13 @@
 Прототип кредитного конвейера для малого бизнеса (хакатон Альфа-Банка): клиент проходит путь от выбора продукта
 до выдачи кредита, а банк ведёт ту же заявку в том же продукте.
 
-> Общие разделы README (назначение, архитектура, сценарии проверки, THIRD_PARTY_NOTICES) пишет Миша.
-> Раздел ниже про бэкенд ведёт Никита: между маркерами `backend:start` и `backend:end`.
+Веб-интерфейс: **http://localhost:3000**. Запуск всех четырёх сервисов: `docker compose up --build`.
+Все аккаунты и деньги демонстрационные, пароль **demo1234**. Начните с **client_fast** или откройте панель банка как **underwriter**.
+
+Реализованы пять исходов, HTTP-проверки WireMock, конфигурируемый скоринг, кабинет клиента и панель банка.
+Объём и соответствие user stories: [implementation-scope](docs/implementation-scope.md).
+Архитектура: [architecture](docs/architecture.md), расхождения: [assumptions](docs/assumptions.md),
+сценарии: [test-scenarios](docs/test-scenarios.md), фактические проверки: [verification](docs/verification.md).
 
 <!-- backend:start -->
 
@@ -20,7 +25,7 @@ docker compose up --build
 
 Первая сборка занимает несколько минут. При старте контейнер `api` сам накатывает миграции Alembic и seed
 (справочники, демо-компании, аккаунты), затем запускает сервер. Готовность видна по healthcheck:
-`docker compose ps` показывает `healthy` у `db`, `api`, `mocks`.
+`docker compose ps` показывает `healthy` у `db`, `api`, `mocks`, `web`.
 
 | Сервис | Адрес | Что это |
 |---|---|---|
@@ -28,7 +33,7 @@ docker compose up --build
 | Swagger UI | <http://localhost:8000/docs> | интерактивная документация |
 | OpenAPI | [`docs/api/openapi.yaml`](docs/api/openapi.yaml) | зафиксированный контракт |
 | Health | <http://localhost:8000/health> | проверка БД |
-| Моки (WireMock) | <http://localhost:8081> | ЕГРЮЛ / ФНС / БКИ (стабы пишет Миша) |
+| Моки (WireMock) | <http://localhost:8081> | ЕГРЮЛ / ФНС / БКИ (синтетические данные) |
 | PostgreSQL | `127.0.0.1:55432` | только для отладки, логин и пароль `credit` |
 
 Полный сброс данных: `docker compose down -v`.
@@ -75,19 +80,32 @@ curl -s localhost:8000/api/v1/products -H "Authorization: Bearer $TOKEN"
 - Стейт-машина: статус меняется только через `transition()` по таблице переходов
   ([`docs/state-machine.md`](docs/state-machine.md)), каждый переход пишется в неизменяемый аудит
   (`loan_application_aud`: UPDATE, DELETE и TRUNCATE запрещены триггером БД).
-- Конвейер после подачи: `SUBMITTED → CHECKING → EXTERNAL_CHECK → SCORING → MANUAL_REVIEW`.
+- Конвейер после подачи: `SUBMITTED → CHECKING → EXTERNAL_CHECK → SCORING` и один из пяти исходов.
+- Правила, факторы и лимиты из YAML, снимки проверок и происхождение полей, идемпотентные команды и единственная выдача в БД.
 - Очередь андеррайтера, ручное решение (комментарий обязателен), дозапрос данных и дозаполнение,
   оффер с аннуитетным платежом, принятие, подписание кодом, «Кредит выдан».
 - Таймлайн статуса для клиента, аудит заявки для андеррайтера.
 - Ошибки в формате RFC 7807 (`application/problem+json`), структурированные JSON-логи с `requestId` и `applicationId`.
 
-### Что пока заглушка
+### Демонстрационные ограничения
 
-- **Внешние проверки (ЕГРЮЛ, ФНС, БКИ) отключены:** клиент к WireMock появится позже, интерфейс готов
-  (`app/integrations/base.py`).
-- **Скоринг не подключён:** движок решения (`app/domain/decision/engine.py`) отправляет любую заявку на ручную проверку.
-  Пока для демо-пути заявку решает андеррайтер вручную.
-- Подписание — симуляция: код берётся из `DEMO_SIGN_CODE` (по умолчанию `123456`), реальных SMS нет.
+ЕГРЮЛ, ФНС и БКИ доступны через локальный WireMock; скоринг и политика выполняются по YAML-конфигурации.
+Ставки синтетические. Подписание и выдача — симуляция, без SMS и реальных денег; код `123456` задаётся DEMO_SIGN_CODE.
+Командные ИНН и существующий API сохранены; детали совместимости — в [assumptions.md](docs/assumptions.md).
+
+### Фронтенд и браузерные проверки
+
+```bash
+cd frontend
+npm ci
+npm run generate:api
+npm run typecheck
+npm run build
+npm run test:e2e
+```
+
+Для dev-режима: `npm run dev`, адрес http://localhost:5173, API должен работать на localhost:8000.
+Playwright проверяет реальные Docker web/API в Google Chrome. Типы генерируются из OpenAPI.
 
 ### Тесты и линтер
 
@@ -125,8 +143,7 @@ uv run python -m app.scripts.export_state_machine  # docs/state-machine.md
 ### Переменные окружения
 
 Все переменные имеют значения по умолчанию, `.env` не обязателен. Полный список с описанием: [`.env.example`](.env.example).
-Главное: `JWT_SECRET` (сменить), `DEMO_SIGN_CODE`, `CORS_ORIGINS`, `PIPELINE_STEP_DELAY_SECONDS` (пауза между шагами
-конвейера, чтобы на демо были видны этапы; по умолчанию 1 с).
+Главное: `JWT_SECRET` (сменить), `DEMO_SIGN_CODE`, `CORS_ORIGINS`, `MOCKS_BASE_URL`. Паузы конвейера отключены; `PIPELINE_STEP_DELAY_SECONDS` оставлен только для совместимости окружения.
 
 ### Структура бэкенда
 

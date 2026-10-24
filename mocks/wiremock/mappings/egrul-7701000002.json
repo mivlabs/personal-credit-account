@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/egrul/7701000002"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "active": true,
+      "registrationDate": "2015-09-01",
+      "industry": "trade",
+      "name": "ООО «Вектор Логистик»",
+      "ogrn": "1157700000022",
+      "legalAddress": "г. Москва, Ленинградский пр-т, д. 39, стр. 2, офис 410"
+    }
+  }
+}

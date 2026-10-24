@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/bki/7701000003"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "debtAmount": "3000000",
+      "overdueDays": 30
+    }
+  }
+}

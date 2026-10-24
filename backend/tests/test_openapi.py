@@ -28,6 +28,7 @@ def test_all_contract_endpoints_present():
         ("get", "/api/v1/auth/me"),
         ("get", "/api/v1/products"),
         ("get", "/api/v1/companies/me"),
+        ("post", "/api/v1/companies/me/enrich"),
         ("get", "/api/v1/applications"),
         ("post", "/api/v1/applications"),
         ("patch", "/api/v1/applications/{application_id}"),

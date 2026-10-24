@@ -1,0 +1,38 @@
+@base = http://localhost:3000/api/v1
+@token = replace-with-accessToken
+@id = 1
+
+### Login
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"login":"client_fast","password":"demo1234"}
+
+### Products
+GET {{base}}/products
+Authorization: Bearer {{token}}
+
+### Create draft
+POST {{base}}/applications
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"productCode":"WORKING_CAPITAL","requestedAmount":1500000,"termMonths":12,"purpose":"Закупка материалов"}
+
+### Submit (use returned draft id)
+POST {{base}}/applications/{{id}}/submit
+Authorization: Bearer {{token}}
+Idempotency-Key: replace-with-unique-submit-key
+
+### Accept
+POST {{base}}/applications/{{id}}/offer/accept
+Authorization: Bearer {{token}}
+Idempotency-Key: replace-with-unique-accept-key
+
+### Simulated signing and disbursement
+POST {{base}}/applications/{{id}}/sign
+Authorization: Bearer {{token}}
+Idempotency-Key: replace-with-unique-sign-key
+Content-Type: application/json
+
+{"code":"123456"}

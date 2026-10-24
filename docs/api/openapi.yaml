@@ -123,7 +123,7 @@ paths:
       description: 'Данные компании клиента (название, ОГРН, адрес, дата регистрации): клиент не вводит их повторно.
 
 
-        Если данных ещё нет, бэкенд сам запрашивает их у ЕГРЮЛ по ИНН; контракт ответа от этого не меняется.'
+        Сохранённый профиль обновляется из локального ЕГРЮЛ отдельной командой POST /companies/me/enrich.'
       operationId: getMyCompany
       responses:
         '200':
@@ -152,6 +152,21 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
       security:
       - bearerAuth: []
+  /api/v1/companies/me/enrich:
+    post:
+      tags:
+      - companies
+      summary: Обновить профиль из ЕГРЮЛ
+      operationId: enrichMyCompany
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyOut'
+      security:
+      - bearerAuth: []
   /api/v1/applications:
     get:
       tags:
@@ -159,15 +174,43 @@ paths:
       summary: Мои заявки
       description: Заявки компании клиента, новые сверху. По списку клиент находит свой черновик.
       operationId: listMyApplications
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/ApplicationStatus'
+          - type: 'null'
+          title: Status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 100
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
+                type: array
                 items:
                   $ref: '#/components/schemas/ApplicationSummary'
-                type: array
                 title: Response Listmyapplications
         '401':
           description: Нет токена, он недействителен или истёк
@@ -181,20 +224,26 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
-      security:
-      - bearerAuth: []
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
     post:
       tags:
       - applications
       summary: Создать черновик заявки
       description: 'Создаёт заявку в статусе `DRAFT`: обязателен только `productCode`, остальное можно прислать позже.'
       operationId: createApplication
+      security:
+      - bearerAuth: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/ApplicationCreate'
-        required: true
       responses:
         '201':
           description: Successful Response
@@ -220,8 +269,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
-      security:
-      - bearerAuth: []
   /api/v1/applications/{application_id}:
     get:
       tags:
@@ -339,7 +386,8 @@ paths:
       summary: Подать заявку
       description: 'Проверяет обязательные поля (`requestedAmount`, `termMonths`, `purpose`) и диапазоны продукта,
 
-        переводит заявку `DRAFT → SUBMITTED` и запускает конвейер обработки. Ответ 202: дальше заявка идёт сама.
+        переводит заявку `DRAFT → SUBMITTED` и запускает конвейер обработки. Ответ 202 содержит результат ограниченного синхронного
+        конвейера.
 
 
         Другой ключ на уже поданную заявку или тот же ключ на другую заявку — 409 `IDEMPOTENCY_CONFLICT`.'
@@ -474,6 +522,16 @@ paths:
           description: Идентификатор заявки
           title: Application Id
         description: Идентификатор заявки
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 64
+          - type: 'null'
+          title: Idempotency-Key
       requestBody:
         required: true
         content:
@@ -536,6 +594,16 @@ paths:
           description: Идентификатор заявки
           title: Application Id
         description: Идентификатор заявки
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 64
+          - type: 'null'
+          title: Idempotency-Key
       responses:
         '200':
           description: Successful Response
@@ -648,6 +716,16 @@ paths:
           description: Идентификатор заявки
           title: Application Id
         description: Идентификатор заявки
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 64
+          - type: 'null'
+          title: Idempotency-Key
       requestBody:
         required: true
         content:
@@ -696,7 +774,7 @@ paths:
       tags:
       - underwriter
       summary: Очередь ручной проверки
-      description: 'Заявки в статусе `MANUAL_REVIEW`, по времени ожидания: самые старые сверху.'
+      description: По умолчанию MANUAL_REVIEW, старые сверху. Фильтр status=ALL показывает все состояния.
       operationId: getUnderwriterQueue
       security:
       - bearerAuth: []
@@ -722,6 +800,16 @@ paths:
           default: 0
           title: Offset
         description: Сколько записей пропустить
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/ApplicationStatus'
+          - const: ALL
+            type: string
+          default: MANUAL_REVIEW
+          title: Status
       responses:
         '200':
           description: Successful Response
@@ -1036,6 +1124,7 @@ components:
           - type: 'null'
           title: Draftstep
           description: Шаг мастера, на котором остановился клиент
+      additionalProperties: false
       type: object
       required:
       - productCode
@@ -1058,6 +1147,12 @@ components:
       description: Поля анкеты, которые клиент заполняет сам и которые банк может запросить повторно.
     ApplicationOut:
       properties:
+        availableActions:
+          items:
+            type: string
+          type: array
+          title: Availableactions
+          description: Допустимые действия для текущей роли
         id:
           type: integer
           title: Id
@@ -1148,6 +1243,7 @@ components:
           description: Актуальный оффер
       type: object
       required:
+      - availableActions
       - id
       - companyId
       - product
@@ -1339,6 +1435,7 @@ components:
           - type: 'null'
           title: Draftstep
           description: Шаг мастера
+      additionalProperties: false
       type: object
       title: ApplicationUpdate
       description: Частичное обновление черновика. Продукт после создания не меняется.
@@ -1534,6 +1631,10 @@ components:
       title: DecisionDetailOut
     DecisionFactorOut:
       properties:
+        explanation:
+          type: string
+          title: Explanation
+          default: ''
         code:
           type: string
           title: Code
@@ -1551,6 +1652,7 @@ components:
           description: Баллы по скоринг-карте
       type: object
       required:
+      - explanation
       - code
       - value
       - points
@@ -1878,6 +1980,7 @@ components:
           - type: 'null'
           title: Debtamount
           description: Текущая долговая нагрузка, ₽
+      additionalProperties: false
       type: object
       title: MissingInfoAnswer
       description: 'Дозаполнение: допустимы только поля из открытого запроса данных, иначе 422.'
@@ -1903,11 +2006,14 @@ components:
           title: Rate
           description: Процентная ставка, % годовых
         monthlyPayment:
-          type: number
-          multipleOf: 0.01
-          minimum: 0.0
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
           title: Monthlypayment
-          description: Ежемесячный аннуитетный платёж, ₽
+          description: Ориентировочный аннуитетный платёж, ₽; null для овердрафта
         status:
           $ref: '#/components/schemas/OfferStatus'
         acceptedAt:
@@ -2079,6 +2185,13 @@ components:
         requirements: Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней
     QueueItem:
       properties:
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+          default: MANUAL_REVIEW
+        statusName:
+          type: string
+          title: Statusname
+          default: На рассмотрении у специалиста
         applicationId:
           type: integer
           title: Applicationid
@@ -2091,11 +2204,13 @@ components:
           type: string
           title: Productname
         requestedAmount:
-          type: number
-          multipleOf: 0.01
-          minimum: 0.0
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
           title: Requestedamount
-          description: Сумма в рублях, не более 2 знаков после запятой
         score:
           anyOf:
           - type: integer
@@ -2116,6 +2231,8 @@ components:
           description: Почему заявка попала в очередь
       type: object
       required:
+      - status
+      - statusName
       - applicationId
       - companyName
       - productCode

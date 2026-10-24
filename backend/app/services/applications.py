@@ -15,7 +15,7 @@ from app.core.errors import (
     ValidationProblem,
     field_error,
 )
-from app.db.models import DimCreditProduct, LoanApplication, LoanOffer
+from app.db.models import DimCreditProduct, Disbursement, LoanApplication, LoanOffer
 from app.domain.enums import (
     STATUS_NAMES,
     ApplicationField,
@@ -24,6 +24,7 @@ from app.domain.enums import (
     OfferStatus,
 )
 from app.domain.fields import FIELD_ATTR, SCHEMA_ATTR
+from app.domain.pipeline import process_pipeline
 from app.domain.state_machine import Actor, record_creation, transition
 from app.domain.timeline import build_stages
 from app.schemas.application import (
@@ -51,6 +52,14 @@ from app.services.validation import fmt_rub, range_errors, submit_errors
 
 S = ApplicationStatus
 
+
+def _commit(session: Session) -> None:
+    if session.info.get("defer_commit"):
+        session.flush()
+    else:
+        session.commit()
+
+
 # Поля схемы дозаполнения/обновления, которые мапятся на колонки заявки
 _DRAFT_ATTRS = {
     "requested_amount": "requested_amt",
@@ -62,17 +71,26 @@ _DRAFT_ATTRS = {
 }
 
 
-def list_my_applications(session: Session, user: AuthUser) -> list[ApplicationSummary]:
+def list_my_applications(
+    session: Session,
+    user: AuthUser,
+    status: ApplicationStatus | None = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> list[ApplicationSummary]:
     rows = session.scalars(
         select(LoanApplication)
         .where(LoanApplication.company_id == user.company_id)
+        .where(LoanApplication.status_code == status.value if status else True)
         .order_by(desc(LoanApplication.application_id))
+        .limit(limit)
+        .offset(offset)
     ).unique()
     return [application_summary(a) for a in rows]
 
 
 def get_application(session: Session, user: AuthUser, application_id: int) -> ApplicationOut:
-    return application_out(session, load_application(session, application_id, user))
+    return application_out(session, load_application(session, application_id, user), user.role.value)
 
 
 def create_draft(session: Session, user: AuthUser, body: ApplicationCreate) -> ApplicationOut:
@@ -101,7 +119,7 @@ def create_draft(session: Session, user: AuthUser, body: ApplicationCreate) -> A
     session.add(app)
     session.flush()
     record_creation(session, app, user.id)
-    session.commit()
+    _commit(session)
     return application_out(session, app)
 
 
@@ -117,7 +135,7 @@ def update_draft(
     for schema_attr, model_attr in _DRAFT_ATTRS.items():
         if schema_attr in body.model_fields_set:
             setattr(app, model_attr, getattr(body, schema_attr))
-    session.commit()
+    _commit(session)
     return application_out(session, app)
 
 
@@ -148,8 +166,9 @@ def submit_application(
     app.idempotency_key_code = idempotency_key
     app.submit_dttm = datetime.now(UTC)
     transition(session, app, S.SUBMITTED, user.id, "Заявка подана клиентом", actor=Actor.CLIENT)
+    process_pipeline(session, app)
     try:
-        session.commit()
+        _commit(session)
     except IntegrityError as exc:
         session.rollback()
         raise IdempotencyConflictError("Этот ключ идемпотентности уже использован") from exc
@@ -213,7 +232,8 @@ def answer_missing_info(
         r.request_status_code = InfoRequestStatus.ANSWERED.value
         r.answer_dttm = now
     transition(session, app, S.CHECKING, user.id, "Клиент дозаполнил запрошенные данные", actor=Actor.CLIENT)
-    session.commit()
+    process_pipeline(session, app)
+    _commit(session)
     return application_out(session, app)
 
 
@@ -236,7 +256,7 @@ def accept_offer(session: Session, user: AuthUser, application_id: int) -> Accep
     offer.accept_dttm = datetime.now(UTC)
     transition(session, app, S.OFFER_ACCEPTED, user.id, "Клиент принял предложение", actor=Actor.CLIENT)
     transition(session, app, S.SIGNING, None, "Договор подготовлен к подписанию", actor=Actor.SYSTEM)
-    session.commit()
+    _commit(session)
     code = get_settings().demo_sign_code
     return AcceptOfferResponse(
         application=application_out(session, app),
@@ -256,7 +276,7 @@ def decline_offer(session: Session, user: AuthUser, application_id: int) -> Appl
     transition(
         session, app, S.DECLINED_BY_CLIENT, user.id, "Клиент отказался от предложения", actor=Actor.CLIENT
     )
-    session.commit()
+    _commit(session)
     return application_out(session, app)
 
 
@@ -276,6 +296,9 @@ def sign_application(session: Session, user: AuthUser, application_id: int, code
     offer = _sent_offer(session, app)
     offer.offer_status_code = OfferStatus.SIGNED.value
     offer.sign_dttm = datetime.now(UTC)
+    session.add(
+        Disbursement(application_id=app.application_id, offer_id=offer.offer_id, amount_amt=offer.offer_amt)
+    )
     transition(
         session,
         app,
@@ -284,5 +307,5 @@ def sign_application(session: Session, user: AuthUser, application_id: int, code
         f"Договор подписан, кредит выдан: {fmt_rub(offer.offer_amt)} ₽ на {offer.term_qnt} мес.",
         actor=Actor.CLIENT,
     )
-    session.commit()
+    _commit(session)
     return application_out(session, app)

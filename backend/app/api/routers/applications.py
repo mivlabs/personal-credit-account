@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Header, Path, Response, status
+from fastapi import APIRouter, Header, Path, Query, Response, status
 
 from app.api.deps import AnyUser, ClientUser, DbSession
 from app.api.responses import CLIENT_ERRORS, R401, R403, R404, R409
-from app.domain.pipeline import run_pipeline
+from app.domain.enums import ApplicationStatus
 from app.schemas.application import (
     AcceptOfferResponse,
     ApplicationCreate,
@@ -16,8 +16,11 @@ from app.schemas.application import (
     TimelineOut,
 )
 from app.services import applications as service
+from app.services.idempotency import execute
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+CommandKey = Annotated[str | None, Header(alias="Idempotency-Key", min_length=1, max_length=64)]
 
 ApplicationId = Annotated[int, Path(ge=1, description="Идентификатор заявки")]
 
@@ -28,9 +31,15 @@ ApplicationId = Annotated[int, Path(ge=1, description="Идентификато�
     summary="Мои заявки",
     responses={**R401, **R403},
 )
-def listMyApplications(user: ClientUser, session: DbSession) -> list[ApplicationSummary]:
+def listMyApplications(
+    user: ClientUser,
+    session: DbSession,
+    status: ApplicationStatus | None = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> list[ApplicationSummary]:
     """Заявки компании клиента, новые сверху. По списку клиент находит свой черновик."""
-    return service.list_my_applications(session, user)
+    return service.list_my_applications(session, user, status, limit, offset)
 
 
 @router.post(
@@ -102,17 +111,14 @@ def submitApplication(
     user: ClientUser,
     session: DbSession,
     response: Response,
-    background: BackgroundTasks,
 ) -> ApplicationOut:
     """Проверяет обязательные поля (`requestedAmount`, `termMonths`, `purpose`) и диапазоны продукта,
-    переводит заявку `DRAFT → SUBMITTED` и запускает конвейер обработки. Ответ 202: дальше заявка идёт сама.
+    переводит заявку `DRAFT → SUBMITTED` и запускает конвейер обработки. Ответ 202 содержит результат ограниченного синхронного конвейера.
 
     Другой ключ на уже поданную заявку или тот же ключ на другую заявку — 409 `IDEMPOTENCY_CONFLICT`.
     """
     result, is_new = service.submit_application(session, user, application_id, idempotency_key)
-    if is_new:
-        background.add_task(run_pipeline, application_id)
-    else:
+    if not is_new:
         response.status_code = status.HTTP_200_OK
     return result
 
@@ -139,13 +145,20 @@ def answerMissingInfo(
     body: MissingInfoAnswer,
     user: ClientUser,
     session: DbSession,
-    background: BackgroundTasks,
+    idempotency_key: CommandKey = None,
 ) -> ApplicationOut:
     """Принимает только поля из открытого запроса данных (прочие — 422). Запрос становится `ANSWERED`,
     заявка `NEEDS_INFO → CHECKING`, конвейер запускается заново."""
-    result = service.answer_missing_info(session, user, application_id, body)
-    background.add_task(run_pipeline, application_id)
-    return result
+    return execute(
+        session,
+        user,
+        application_id,
+        "answer_info",
+        idempotency_key,
+        body.model_dump(mode="json", by_alias=True, exclude_unset=True),
+        ApplicationOut,
+        lambda: service.answer_missing_info(session, user, application_id, body),
+    )
 
 
 @router.post(
@@ -154,9 +167,20 @@ def answerMissingInfo(
     summary="Принять оффер или контроффер",
     responses={**R401, **R403, **R404, **R409},
 )
-def acceptOffer(application_id: ApplicationId, user: ClientUser, session: DbSession) -> AcceptOfferResponse:
+def acceptOffer(
+    application_id: ApplicationId, user: ClientUser, session: DbSession, idempotency_key: CommandKey = None
+) -> AcceptOfferResponse:
     """`APPROVED` / `COUNTER_OFFER` → `OFFER_ACCEPTED` → `SIGNING`. В ответе подсказка с демо-кодом подписи."""
-    return service.accept_offer(session, user, application_id)
+    return execute(
+        session,
+        user,
+        application_id,
+        "accept_offer",
+        idempotency_key,
+        {},
+        AcceptOfferResponse,
+        lambda: service.accept_offer(session, user, application_id),
+    )
 
 
 @router.post(
@@ -177,7 +201,20 @@ def declineOffer(application_id: ApplicationId, user: ClientUser, session: DbSes
     responses={**CLIENT_ERRORS, **R404, **R409},
 )
 def signApplication(
-    application_id: ApplicationId, body: SignRequest, user: ClientUser, session: DbSession
+    application_id: ApplicationId,
+    body: SignRequest,
+    user: ClientUser,
+    session: DbSession,
+    idempotency_key: CommandKey = None,
 ) -> ApplicationOut:
     """Код совпал с `DEMO_SIGN_CODE` → `SIGNING → ISSUED`, оффер `SIGNED`. Неверный код — 422 по полю `code`."""
-    return service.sign_application(session, user, application_id, body.code)
+    return execute(
+        session,
+        user,
+        application_id,
+        "sign",
+        idempotency_key,
+        body.model_dump(mode="json"),
+        ApplicationOut,
+        lambda: service.sign_application(session, user, application_id, body.code),
+    )

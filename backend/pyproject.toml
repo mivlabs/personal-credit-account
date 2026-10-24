@@ -40,6 +40,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501", "SIM108"]
 
 [tool.pytest.ini_options]
+markers = ["live_integrations: real local WireMock HTTP checks"]
 testpaths = ["tests"]
 addopts = "-ra"
 filterwarnings = [

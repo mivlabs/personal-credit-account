@@ -21,8 +21,34 @@ def list_products(session: Session) -> list[ProductOut]:
 
 
 def get_my_company(session: Session, user: AuthUser) -> CompanyOut:
-    """Профиль из БД. С четверга, если данных ещё нет, сюда добавится запрос в мок ЕГРЮЛ (контракт тот же)."""
+    """Сохранённый профиль компании; обновление по явной команде enrich_my_company."""
     company = session.get(Company, user.company_id)
     if company is None:
         raise NotFoundError("Компания не найдена")
+    return company_out(company)
+
+
+def enrich_my_company(session: Session, user: AuthUser) -> CompanyOut:
+    from datetime import date
+
+    from app.core.errors import ServiceUnavailableError
+    from app.domain.enums import CheckSource, CheckStatus
+    from app.integrations.http import HttpExternalChecks
+
+    company = session.get(Company, user.company_id, with_for_update=True)
+    if company is None:
+        raise NotFoundError("Компания не найдена")
+    result = HttpExternalChecks().fetch(CheckSource.EGRUL, company.inn_code)
+    if result.status != CheckStatus.OK:
+        raise ServiceUnavailableError("Профиль компании временно недоступен. Повторите позже")
+    data = result.data
+    company.registration_dt = date.fromisoformat(data["registrationDate"])
+    for key, attr in (
+        ("name", "company_name"),
+        ("ogrn", "ogrn_code"),
+        ("legalAddress", "legal_address_desc"),
+    ):
+        if data.get(key):
+            setattr(company, attr, data[key])
+    session.commit()
     return company_out(company)

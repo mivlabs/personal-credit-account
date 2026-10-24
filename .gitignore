@@ -32,3 +32,7 @@ Thumbs.db
 
 # Временные файлы Office (открытый docx)
 ~$*
+
+# Browser verification artifacts
+frontend/test-results/
+frontend/playwright-report/

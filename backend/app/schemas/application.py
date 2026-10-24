@@ -15,6 +15,7 @@ from app.schemas.product import ProductOut
 
 
 class ApplicationFields(ApiModel):
+    model_config = ConfigDict(extra="forbid")
     """Поля анкеты, общие для создания, обновления черновика и дозаполнения."""
 
     requested_amount: Money | None = Field(default=None, gt=0, description="Запрошенная сумма, ₽")
@@ -100,7 +101,9 @@ class OfferOut(ApiModel):
     amount: Money = Field(description="Предложенная сумма, ₽ (при контроффере меньше запрошенной)")
     term_months: int
     rate: Rate
-    monthly_payment: Money = Field(description="Ежемесячный аннуитетный платёж, ₽")
+    monthly_payment: Money | None = Field(
+        default=None, description="Ориентировочный аннуитетный платёж, ₽; null для овердрафта"
+    )
     status: OfferStatus
     accepted_at: AwareDatetime | None = None
     signed_at: AwareDatetime | None = None
@@ -125,6 +128,9 @@ class ApplicationSummary(ApiModel):
 
 
 class ApplicationOut(ApiModel):
+    available_actions: list[str] = Field(
+        default_factory=list, description="Допустимые действия для текущей роли"
+    )
     id: int
     company_id: int
     product: ProductOut

@@ -1,0 +1,2773 @@
+[
+  {
+    "ecosystem": "Python",
+    "name": "alembic",
+    "version": "1.20.0",
+    "license": "MIT",
+    "license_files": [
+      "alembic-1.20.0.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "annotated-doc",
+    "version": "0.0.5",
+    "license": "MIT",
+    "license_files": [
+      "annotated_doc-0.0.5.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "annotated-types",
+    "version": "0.8.0",
+    "license": "MIT",
+    "license_files": [
+      "annotated_types-0.8.0.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "anyio",
+    "version": "4.15.1",
+    "license": "MIT",
+    "license_files": [
+      "anyio-4.15.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "bcrypt",
+    "version": "5.0.0",
+    "license": "Apache-2.0",
+    "license_files": [
+      "bcrypt-5.0.0.dist-info/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "certifi",
+    "version": "2026.10.19",
+    "license": "MPL-2.0",
+    "license_files": [
+      "certifi-2026.10.19.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "click",
+    "version": "8.5.0",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "click-8.5.0.dist-info/licenses/LICENSE.txt"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "colorama",
+    "version": "0.4.6",
+    "license": "BSD License",
+    "license_files": [
+      "colorama-0.4.6.dist-info/licenses/LICENSE.txt"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "fastapi",
+    "version": "0.159.1",
+    "license": "MIT",
+    "license_files": [
+      "fastapi-0.159.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "h11",
+    "version": "0.16.0",
+    "license": "MIT",
+    "license_files": [
+      "h11-0.16.0.dist-info/licenses/LICENSE.txt"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "httpcore",
+    "version": "1.0.9",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "httpcore-1.0.9.dist-info/licenses/LICENSE.md"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "httptools",
+    "version": "0.9.0",
+    "license": "MIT",
+    "license_files": [
+      "httptools-0.9.0.dist-info/licenses/LICENSE",
+      "httptools-0.9.0.dist-info/licenses/vendor/http-parser/LICENSE-MIT",
+      "httptools-0.9.0.dist-info/licenses/vendor/llhttp/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "httpx",
+    "version": "0.28.1",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "httpx-0.28.1.dist-info/licenses/LICENSE.md"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "idna",
+    "version": "3.20",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "idna-3.20.dist-info/licenses/LICENSE.md"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "iniconfig",
+    "version": "2.3.1",
+    "license": "MIT",
+    "license_files": [
+      "iniconfig-2.3.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "Mako",
+    "version": "1.4.3",
+    "license": "MIT",
+    "license_files": [
+      "mako-1.4.3.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "MarkupSafe",
+    "version": "3.0.4",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "markupsafe-3.0.4.dist-info/licenses/LICENSE.txt"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "opentelemetry-api",
+    "version": "1.45.1",
+    "license": "Apache-2.0",
+    "license_files": [
+      "opentelemetry_api-1.45.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "packaging",
+    "version": "26.3",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "license_files": [
+      "packaging-26.3.dist-info/licenses/LICENSE",
+      "packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+      "packaging-26.3.dist-info/licenses/LICENSE.BSD",
+      "packaging/licenses/__init__.py",
+      "packaging/licenses/_spdx.py"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "pluggy",
+    "version": "1.7.0",
+    "license": "MIT",
+    "license_files": [
+      "pluggy-1.7.0.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "psycopg",
+    "version": "3.3.6",
+    "license": "LGPL-3.0-only",
+    "license_files": [
+      "psycopg-3.3.6.dist-info/licenses/LICENSE.txt"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "psycopg-binary",
+    "version": "3.3.6",
+    "license": "LGPL-3.0-only",
+    "license_files": [
+      "psycopg_binary-3.3.6.dist-info/licenses/LICENSE.txt"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "pydantic",
+    "version": "2.14.1",
+    "license": "MIT",
+    "license_files": [
+      "pydantic-2.14.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "pydantic-settings",
+    "version": "2.16.1",
+    "license": "MIT",
+    "license_files": [
+      "pydantic_settings-2.16.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "pydantic_core",
+    "version": "2.50.1",
+    "license": "MIT",
+    "license_files": [
+      "pydantic_core-2.50.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "Pygments",
+    "version": "2.21.0",
+    "license": "BSD-2-Clause",
+    "license_files": [
+      "pygments-2.21.0.dist-info/licenses/AUTHORS",
+      "pygments-2.21.0.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "PyJWT",
+    "version": "2.15.1",
+    "license": "MIT",
+    "license_files": [
+      "pyjwt-2.15.1.dist-info/licenses/AUTHORS.rst",
+      "pyjwt-2.15.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "pytest",
+    "version": "9.1.1",
+    "license": "MIT",
+    "license_files": [
+      "pytest-9.1.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "python-dotenv",
+    "version": "1.2.4",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "python_dotenv-1.2.4.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "PyYAML",
+    "version": "6.0.3",
+    "license": "MIT",
+    "license_files": [
+      "pyyaml-6.0.3.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "ruff",
+    "version": "0.17.1",
+    "license": "MIT",
+    "license_files": [
+      "ruff-0.17.1.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "SQLAlchemy",
+    "version": "2.1.6",
+    "license": "MIT",
+    "license_files": [
+      "sqlalchemy-2.1.6.dist-info/licenses/AUTHORS",
+      "sqlalchemy-2.1.6.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "starlette",
+    "version": "1.9.0",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "starlette-1.9.0.dist-info/licenses/LICENSE.md"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "typing-inspection",
+    "version": "0.4.4",
+    "license": "MIT",
+    "license_files": [
+      "typing_inspection-0.4.4.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "license": "PSF-2.0",
+    "license_files": [
+      "typing_extensions-4.16.0.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "tzdata",
+    "version": "2026.5",
+    "license": "Apache-2.0",
+    "license_files": [
+      "tzdata-2026.5.dist-info/licenses/LICENSE",
+      "tzdata-2026.5.dist-info/licenses/licenses/LICENSE_APACHE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "uvicorn",
+    "version": "0.54.0",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "uvicorn-0.54.0.dist-info/licenses/LICENSE.md"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "watchfiles",
+    "version": "1.3.0",
+    "license": "MIT",
+    "license_files": [
+      "watchfiles-1.3.0.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "Python",
+    "name": "websockets",
+    "version": "17.3",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "websockets-17.3.dist-info/licenses/LICENSE"
+    ],
+    "source": "installed dist-info metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/colors",
+    "version": "8.0.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@ant-design/colors/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/cssinjs",
+    "version": "1.24.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@ant-design/cssinjs/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/cssinjs-utils",
+    "version": "1.1.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@ant-design/cssinjs-utils/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/fast-color",
+    "version": "3.0.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@ant-design/fast-color/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/icons",
+    "version": "6.3.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@ant-design/icons/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/icons-svg",
+    "version": "4.6.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/react-slick",
+    "version": "1.1.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@ant-design/react-slick/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/code-frame",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/code-frame/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/compat-data",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/compat-data/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/core",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/core/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/generator",
+    "version": "7.29.8",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/generator/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-compilation-targets",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-compilation-targets/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-globals",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-globals/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-module-imports",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-module-imports/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-module-transforms",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-module-transforms/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-plugin-utils",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-plugin-utils/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-string-parser",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-string-parser/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-validator-identifier",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-validator-identifier/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helper-validator-option",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helper-validator-option/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/helpers",
+    "version": "7.29.10",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/helpers/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/parser",
+    "version": "7.29.9",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/parser/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/plugin-transform-react-jsx-self",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/plugin-transform-react-jsx-self/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/plugin-transform-react-jsx-source",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/plugin-transform-react-jsx-source/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/runtime",
+    "version": "7.29.10",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/runtime/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/template",
+    "version": "7.29.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/template/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/traverse",
+    "version": "7.29.10",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/traverse/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@babel/types",
+    "version": "7.29.8",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@babel/types/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@emotion/hash",
+    "version": "0.8.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@emotion/hash/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@emotion/unitless",
+    "version": "0.7.5",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@emotion/unitless/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/aix-ppc64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/android-arm",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/android-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/android-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/darwin-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/darwin-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/freebsd-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/freebsd-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-arm",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-ia32",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-loong64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-mips64el",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-ppc64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-riscv64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-s390x",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/linux-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/netbsd-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/netbsd-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/openbsd-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/openbsd-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/openharmony-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/sunos-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/win32-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/win32-ia32",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@esbuild/win32-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@jridgewell/gen-mapping",
+    "version": "0.3.13",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@jridgewell/gen-mapping/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@jridgewell/remapping",
+    "version": "2.3.5",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@jridgewell/remapping/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@jridgewell/resolve-uri",
+    "version": "3.1.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@jridgewell/resolve-uri/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@jridgewell/sourcemap-codec",
+    "version": "1.6.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@jridgewell/sourcemap-codec/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@jridgewell/trace-mapping",
+    "version": "0.3.31",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@jridgewell/trace-mapping/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@napi-rs/lzma-linux-x64-gnu",
+    "version": "1.5.1",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@playwright/test",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "license_files": [
+      "frontend/node_modules/@playwright/test/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/async-validator",
+    "version": "5.1.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/async-validator/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/color-picker",
+    "version": "2.0.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/color-picker/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/fast-color",
+    "version": "2.0.6",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/color-picker/node_modules/@ant-design/fast-color/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/context",
+    "version": "1.4.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/context/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/mini-decimal",
+    "version": "1.1.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/mini-decimal/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/mutate-observer",
+    "version": "1.1.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/mutate-observer/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/portal",
+    "version": "1.1.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/portal/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/qrcode",
+    "version": "1.1.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/qrcode/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/tour",
+    "version": "1.15.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/tour/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/trigger",
+    "version": "2.3.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/trigger/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rc-component/util",
+    "version": "1.14.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rc-component/util/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@redocly/ajv",
+    "version": "8.11.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@redocly/ajv/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@redocly/config",
+    "version": "0.22.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@redocly/config/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@redocly/openapi-core",
+    "version": "1.34.22",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rolldown/pluginutils",
+    "version": "1.0.0-rc.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@rolldown/pluginutils/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-android-arm-eabi",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-android-arm64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-darwin-arm64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-darwin-x64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-freebsd-arm64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-freebsd-x64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-arm-gnueabihf",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-arm-musleabihf",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-arm64-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-arm64-musl",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-loong64-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-loong64-musl",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-ppc64-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-ppc64-musl",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-riscv64-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-riscv64-musl",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-s390x-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-x64-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-linux-x64-musl",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-openbsd-x64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-openharmony-arm64",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-win32-arm64-msvc",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-win32-ia32-msvc",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-win32-x64-gnu",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@rollup/rollup-win32-x64-msvc",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/babel__core",
+    "version": "7.20.5",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/babel__core/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/babel__generator",
+    "version": "7.27.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/babel__generator/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/babel__template",
+    "version": "7.4.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/babel__template/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/babel__traverse",
+    "version": "7.28.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/babel__traverse/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/estree",
+    "version": "1.0.9",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/estree/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/react",
+    "version": "19.3.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/react/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@types/react-dom",
+    "version": "19.3.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@types/react-dom/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@vitejs/plugin-react",
+    "version": "5.2.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/@vitejs/plugin-react/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "agent-base",
+    "version": "7.1.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/agent-base/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "ansi-colors",
+    "version": "4.1.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/ansi-colors/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "antd",
+    "version": "5.29.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/antd/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/colors",
+    "version": "7.2.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/antd/node_modules/@ant-design/colors/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/fast-color",
+    "version": "2.0.6",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/antd/node_modules/@ant-design/fast-color/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@ant-design/icons",
+    "version": "5.6.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/antd/node_modules/@ant-design/icons/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "argparse",
+    "version": "2.0.1",
+    "license": "Python-2.0",
+    "license_files": [
+      "frontend/node_modules/argparse/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "balanced-match",
+    "version": "1.0.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/balanced-match/LICENSE.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "baseline-browser-mapping",
+    "version": "2.11.32",
+    "license": "Apache-2.0",
+    "license_files": [
+      "frontend/node_modules/baseline-browser-mapping/LICENSE.txt"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "brace-expansion",
+    "version": "2.1.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/brace-expansion/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "browserslist",
+    "version": "4.29.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/browserslist/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "caniuse-lite",
+    "version": "1.0.30001819",
+    "license": "CC-BY-4.0",
+    "license_files": [
+      "frontend/node_modules/caniuse-lite/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "change-case",
+    "version": "5.4.4",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "classnames",
+    "version": "2.5.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/classnames/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "clsx",
+    "version": "2.1.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/clsx/license"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "colorette",
+    "version": "1.4.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/colorette/LICENSE.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "compute-scroll-into-view",
+    "version": "3.1.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/compute-scroll-into-view/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "convert-source-map",
+    "version": "2.0.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/convert-source-map/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "cookie",
+    "version": "1.1.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/cookie/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "copy-to-clipboard",
+    "version": "3.3.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/copy-to-clipboard/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "csstype",
+    "version": "3.2.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/csstype/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "dayjs",
+    "version": "1.11.23",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/dayjs/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "debug",
+    "version": "4.4.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/debug/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "electron-to-chromium",
+    "version": "1.5.464",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/electron-to-chromium/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "esbuild",
+    "version": "0.28.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/esbuild/LICENSE.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "escalade",
+    "version": "3.2.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/escalade/license"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "fast-deep-equal",
+    "version": "3.1.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/fast-deep-equal/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "fdir",
+    "version": "6.5.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/fdir/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "fsevents",
+    "version": "2.3.3",
+    "license": "MIT",
+    "license_files": [],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "gensync",
+    "version": "1.0.0-beta.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/gensync/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "https-proxy-agent",
+    "version": "7.0.6",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/https-proxy-agent/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "index-to-position",
+    "version": "1.2.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/index-to-position/license"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "is-mobile",
+    "version": "5.0.0",
+    "license": "MIT",
+    "license_files": [],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "js-levenshtein",
+    "version": "1.1.6",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/js-levenshtein/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "js-tokens",
+    "version": "4.0.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/js-tokens/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "js-yaml",
+    "version": "4.3.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/js-yaml/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "jsesc",
+    "version": "3.1.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/jsesc/LICENSE-MIT.txt"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "json-schema-traverse",
+    "version": "1.0.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/json-schema-traverse/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "json2mq",
+    "version": "0.2.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/json2mq/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "json5",
+    "version": "2.2.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/json5/LICENSE.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "lru-cache",
+    "version": "5.1.1",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/lru-cache/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "minimatch",
+    "version": "5.1.9",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/minimatch/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "ms",
+    "version": "2.1.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/ms/license.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "nanoid",
+    "version": "3.3.20",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/nanoid/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "node-releases",
+    "version": "2.0.60",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/node-releases/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "openapi-typescript",
+    "version": "7.13.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/openapi-typescript/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "parse-json",
+    "version": "8.3.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/parse-json/license"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "picocolors",
+    "version": "1.1.1",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/picocolors/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "picomatch",
+    "version": "4.0.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/picomatch/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "playwright",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "license_files": [
+      "frontend/node_modules/playwright/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "playwright-core",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "license_files": [
+      "frontend/node_modules/playwright-core/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "pluralize",
+    "version": "8.0.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/pluralize/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "postcss",
+    "version": "8.5.31",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/postcss/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-cascader",
+    "version": "3.34.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-cascader/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-checkbox",
+    "version": "3.5.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-checkbox/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-collapse",
+    "version": "3.9.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-collapse/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-dialog",
+    "version": "9.6.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-dialog/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-drawer",
+    "version": "7.3.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-drawer/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-dropdown",
+    "version": "4.2.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-dropdown/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-field-form",
+    "version": "2.7.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-field-form/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-image",
+    "version": "7.12.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-image/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-input",
+    "version": "1.8.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-input/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-input-number",
+    "version": "9.5.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-input-number/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-mentions",
+    "version": "2.20.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-mentions/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-menu",
+    "version": "9.16.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-menu/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-motion",
+    "version": "2.9.5",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-motion/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-notification",
+    "version": "5.6.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-notification/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-overflow",
+    "version": "1.5.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-overflow/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-pagination",
+    "version": "5.1.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-pagination/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-picker",
+    "version": "4.11.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-picker/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-progress",
+    "version": "4.0.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-progress/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-rate",
+    "version": "2.13.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-rate/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-resize-observer",
+    "version": "1.4.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-resize-observer/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-segmented",
+    "version": "2.7.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-segmented/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-select",
+    "version": "14.16.8",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-select/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-slider",
+    "version": "11.1.9",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-slider/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-steps",
+    "version": "6.0.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-steps/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-switch",
+    "version": "4.1.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-switch/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-table",
+    "version": "7.54.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-table/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-tabs",
+    "version": "15.7.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-tabs/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-textarea",
+    "version": "1.10.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-textarea/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-tooltip",
+    "version": "6.4.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-tooltip/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-tree",
+    "version": "5.13.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-tree/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-tree-select",
+    "version": "5.27.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-tree-select/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-upload",
+    "version": "4.11.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-upload/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-util",
+    "version": "5.44.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-util/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-is",
+    "version": "18.3.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-util/node_modules/react-is/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rc-virtual-list",
+    "version": "3.19.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rc-virtual-list/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react",
+    "version": "19.3.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/react/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-dom",
+    "version": "19.3.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/react-dom/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-is",
+    "version": "19.3.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/react-is/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-refresh",
+    "version": "0.18.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/react-refresh/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-router",
+    "version": "7.18.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/react-router/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-router-dom",
+    "version": "7.18.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/react-router-dom/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "require-from-string",
+    "version": "2.0.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/require-from-string/license"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "resize-observer-polyfill",
+    "version": "1.5.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/resize-observer-polyfill/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "rollup",
+    "version": "4.65.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/rollup/LICENSE.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "scheduler",
+    "version": "0.28.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/scheduler/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "scroll-into-view-if-needed",
+    "version": "3.1.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/scroll-into-view-if-needed/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "semver",
+    "version": "6.3.1",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/semver/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "set-cookie-parser",
+    "version": "2.7.3",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/set-cookie-parser/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "source-map-js",
+    "version": "1.2.2",
+    "license": "BSD-3-Clause",
+    "license_files": [
+      "frontend/node_modules/source-map-js/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "string-convert",
+    "version": "0.2.1",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/string-convert/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "stylis",
+    "version": "4.4.0",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/stylis/LICENSE"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "supports-color",
+    "version": "10.2.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/supports-color/license"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "throttle-debounce",
+    "version": "5.0.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/throttle-debounce/LICENSE.md"
+    ],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "tinyglobby",
+    "version": "0.2.17",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/tinyglobby/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "toggle-selection",
+    "version": "1.0.6",
+    "license": "MIT",
+    "license_files": [],
+    "dev": false,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "type-fest",
+    "version": "4.41.0",
+    "license": "(MIT OR CC0-1.0)",
+    "license_files": [
+      "frontend/node_modules/type-fest/license-cc0",
+      "frontend/node_modules/type-fest/license-mit"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "typescript",
+    "version": "5.9.3",
+    "license": "Apache-2.0",
+    "license_files": [
+      "frontend/node_modules/typescript/LICENSE.txt"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "update-browserslist-db",
+    "version": "1.3.4",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/update-browserslist-db/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "uri-js-replace",
+    "version": "1.0.2",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/uri-js-replace/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "vite",
+    "version": "7.3.7",
+    "license": "MIT",
+    "license_files": [
+      "frontend/node_modules/vite/LICENSE.md"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "yallist",
+    "version": "3.1.1",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/yallist/LICENSE"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "yaml-ast-parser",
+    "version": "0.0.43",
+    "license": "Apache-2.0",
+    "license_files": [
+      "frontend/node_modules/yaml-ast-parser/license.txt"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "yargs-parser",
+    "version": "21.1.1",
+    "license": "ISC",
+    "license_files": [
+      "frontend/node_modules/yargs-parser/LICENSE.txt"
+    ],
+    "dev": true,
+    "source": "package-lock.json package metadata"
+  }
+]

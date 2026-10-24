@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/egrul/7701000006"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "active": true,
+      "registrationDate": "2019-02-11",
+      "industry": "trade",
+      "name": "ООО «Дальний Восток Снаб»",
+      "ogrn": "1197700000066",
+      "legalAddress": "г. Владивосток, ул. Светланская, д. 22, офис 8"
+    }
+  }
+}

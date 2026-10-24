@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/egrul/7701000004"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "active": true,
+      "registrationDate": "2017-06-20",
+      "industry": "services",
+      "name": "ООО «Зелёный Двор»",
+      "ogrn": "1177700000044",
+      "legalAddress": "г. Казань, ул. Баумана, д. 7, офис 3"
+    }
+  }
+}

@@ -1,8 +1,4 @@
-"""Интерфейс внешних проверок (ЕГРЮЛ, ФНС, БКИ).
-
-Сегодня клиента к мокам нет: используется NoopExternalChecks. В четверг здесь появится клиент на httpx
-(таймаут ~2 с, 2 ретрая, каждая попытка пишется в external_check), интерфейс останется прежним.
-"""
+"""External check contracts and persisted result loading."""
 
 import json
 from dataclasses import dataclass, field
@@ -46,8 +42,10 @@ class NoopExternalChecks:
         return ExternalData()
 
 
-def get_external_checks_client() -> ExternalChecksClient:
-    return NoopExternalChecks()
+def get_external_checks_client(session=None) -> ExternalChecksClient:
+    from app.integrations.http import HttpExternalChecks
+
+    return HttpExternalChecks(session)
 
 
 def load_external_data(session: Session, application_id: int) -> ExternalData:

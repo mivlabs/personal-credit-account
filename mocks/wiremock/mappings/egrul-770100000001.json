@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/egrul/770100000001"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "active": true,
+      "registrationDate": "2016-03-14",
+      "industry": "services",
+      "name": "ИП Соколов Андрей Викторович",
+      "ogrn": "321770000000011",
+      "legalAddress": "г. Москва, ул. Тверская, д. 12, кв. 34"
+    }
+  }
+}

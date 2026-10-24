@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/fns/7701000006"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "annualRevenue": "12000000"
+    }
+  }
+}

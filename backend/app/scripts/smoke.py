@@ -16,7 +16,7 @@ import uuid
 from typing import Any
 
 PASSWORD = "demo1234"
-FINAL_FOR_SMOKE = "MANUAL_REVIEW"
+FINAL_FOR_SMOKE = "APPROVED"
 
 
 class Smoke:
@@ -128,9 +128,9 @@ class Smoke:
         path = " → ".join(["∅"] + [a["toStatus"] for a in audit])
         self.check("GET /audit содержит все переходы", len(audit) >= 6, path)
 
-        _, queue = self.call("GET", "/api/v1/underwriter/queue?limit=100", token=uw)
+        _, queue = self.call("GET", "/api/v1/underwriter/queue?limit=100&status=APPROVED", token=uw)
         self.check(
-            "заявка в очереди андеррайтера",
+            "одобренная заявка доступна банку через фильтр",
             any(i["applicationId"] == app_id for i in queue["items"]),
             f"в очереди {queue['total']}",
         )

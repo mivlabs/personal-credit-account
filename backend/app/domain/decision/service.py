@@ -10,6 +10,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from app.db.models import CreditDecision, DecisionFactor, InfoRequest, LoanApplication, LoanOffer
+from app.domain.decision.config import load_decision_config
 from app.domain.decision.engine import DecisionResult, FactorResult, InfoRequestSpec
 from app.domain.enums import (
     ApplicationStatus,
@@ -37,6 +38,7 @@ def record_decision(
     offer_term_months: int | None = None,
     info_request: InfoRequestSpec | None = None,
     audit_comment: str | None = None,
+    offer_rate: Decimal | None = None,
 ) -> CreditDecision:
     decision = CreditDecision(
         application_id=application.application_id,
@@ -55,7 +57,7 @@ def record_decision(
             DecisionFactor(
                 decision_id=decision.decision_id,
                 factor_code=f.code,
-                factor_cval=f.value,
+                factor_cval=json.dumps({"value": f.value, "explanation": f.explanation}, ensure_ascii=False),
                 point_qnt=f.points,
             )
         )
@@ -63,14 +65,16 @@ def record_decision(
     if outcome in (DecisionOutcome.APPROVED, DecisionOutcome.COUNTER_OFFER):
         amount = offer_amount if offer_amount is not None else application.requested_amt
         term = offer_term_months if offer_term_months is not None else application.term_qnt
-        rate = application.product.rate_nval
+        rate = offer_rate if offer_rate is not None else application.product.rate_nval
         session.add(
             LoanOffer(
                 decision_id=decision.decision_id,
                 offer_amt=amount,
                 term_qnt=term,
                 rate_nval=rate,
-                monthly_payment_amt=monthly_payment(amount, rate, term),
+                monthly_payment_amt=Decimal(0)
+                if application.product.product_code == "OVERDRAFT"
+                else monthly_payment(amount, rate, term),
                 offer_status_code=OfferStatus.SENT.value,
             )
         )
@@ -102,6 +106,7 @@ def record_decision(
 def record_auto_decision(
     session: Session, application: LoanApplication, result: DecisionResult
 ) -> CreditDecision:
+    config = load_decision_config()
     return record_decision(
         session,
         application,
@@ -111,7 +116,35 @@ def record_auto_decision(
         score=result.score,
         factors=result.factors,
         reason=result.reason,
-        comment=None,
+        comment=json.dumps(
+            {
+                "rules": config.model_dump(mode="json"),
+                "externalData": session.info.get("decision_external_snapshot", {}),
+                "provenance": {
+                    "annualRevenue": "client" if application.revenue_amt is not None else "FNS",
+                    "debtAmount": "client" if application.debt_amt is not None else "BKI",
+                },
+                "ruleCode": result.rule_code,
+                "limit": str(result.limit) if result.limit is not None else None,
+                "inputs": {
+                    "requestedAmount": str(application.requested_amt),
+                    "annualRevenue": str(application.revenue_amt)
+                    if application.revenue_amt is not None
+                    else None,
+                    "debtAmount": str(application.debt_amt) if application.debt_amt is not None else None,
+                },
+            },
+            ensure_ascii=False,
+        ),
+        offer_rate=(
+            config.base_rate_pct
+            + config.product_spreads[application.product.product_code]
+            + (
+                config.risk_surcharge_pct
+                if result.score is not None and result.score < config.low_risk_threshold
+                else Decimal(0)
+            )
+        ),
         offer_amount=result.offer_amt,
         info_request=result.info_request,
         audit_comment=result.note or result.reason,

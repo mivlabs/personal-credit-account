@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/bki/7701000006"
+  },
+  "response": {
+    "status": 503,
+    "jsonBody": {
+      "error": "Synthetic BKI outage"
+    }
+  }
+}

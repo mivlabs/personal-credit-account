@@ -17,6 +17,11 @@ router = APIRouter(prefix="/companies", tags=["companies"])
 def getMyCompany(user: ClientUser, session: DbSession) -> CompanyOut:
     """Данные компании клиента (название, ОГРН, адрес, дата регистрации): клиент не вводит их повторно.
 
-    Если данных ещё нет, бэкенд сам запрашивает их у ЕГРЮЛ по ИНН; контракт ответа от этого не меняется.
+    Сохранённый профиль обновляется из локального ЕГРЮЛ отдельной командой POST /companies/me/enrich.
     """
     return catalog.get_my_company(session, user)
+
+
+@router.post("/me/enrich", response_model=CompanyOut, summary="Обновить профиль из ЕГРЮЛ")
+def enrichMyCompany(user: ClientUser, session: DbSession) -> CompanyOut:
+    return catalog.enrich_my_company(session, user)

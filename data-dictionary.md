@@ -183,3 +183,15 @@
 | to_status_code | dCode | да | FK → dim_application_status |
 | event_desc | dDescription | нет | Комментарий к переходу |
 | create_dttm | dDateTime | да | Когда произошло. Строки только добавляются |
+
+
+## Дополнение 2026-10-24: повтор команд и симуляция выдачи
+
+Миграция Alembic 0002 добавляет технические таблицы без изменения исходных бизнес-ключей.
+
+| Таблица | Поля | Ограничения |
+|---|---|---|
+| idempotency_record | record_id dIdentifier PK; user_id, application_id FK; operation_code, key_code, request_hash_code dCode; response_cval dCharValue JSON; create_dttm dDateTime | UNIQUE(user_id, operation_code, key_code), NOT NULL |
+| disbursement | disbursement_id dIdentifier PK; application_id, offer_id FK; amount_amt dAmount; create_dttm dDateTime | UNIQUE(application_id), NOT NULL |
+
+В AUTO credit_decision.comment_desc сохраняется внутренний JSON-снимок версии правил, исходных данных и ответов источников; он не выдаётся клиенту. decision_factor.factor_cval хранит JSON с value и explanation, сохраняя чтение старых строковых значений. См. docs/data-model.md.

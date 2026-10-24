@@ -140,3 +140,15 @@ class Flow:
 @pytest.fixture
 def flow(client: TestClient, fast: dict[str, str]) -> Flow:
     return Flow(client, fast)
+
+
+@pytest.fixture(autouse=True)
+def legacy_manual_integrations(request, monkeypatch):
+    """Existing orchestration tests isolate external checks; live scenarios use WireMock."""
+    if request.node.get_closest_marker("live_integrations"):
+        return
+    from app.integrations.base import NoopExternalChecks
+
+    monkeypatch.setattr(
+        "app.domain.pipeline.get_external_checks_client", lambda session=None: NoopExternalChecks()
+    )

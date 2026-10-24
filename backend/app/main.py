@@ -17,6 +17,9 @@ def _operation_id(route: APIRoute) -> str:
 
 
 def create_app() -> FastAPI:
+    from app.domain.decision.config import load_decision_config
+
+    load_decision_config()
     settings = get_settings()
     setup_logging(settings.log_level)
 

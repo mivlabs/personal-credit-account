@@ -60,7 +60,7 @@ def test_submit_moves_application_through_pipeline_to_manual_review(flow: Flow):
         "MANUAL_REVIEW",
     ]
     assert app["decision"]["outcome"] == "MANUAL_REVIEW"
-    assert app["decision"]["reason"] == "Заявка передана специалисту"
+    assert app["decision"]["reason"] == "Данные проверит специалист банка"
     assert "score" not in app["decision"]  # клиент не видит баллов
 
 
@@ -148,3 +148,26 @@ def test_draft_rejects_non_positive_amount(client: TestClient, fast):
         "/api/v1/applications", headers=fast, json={"productCode": "OVERDRAFT", "requestedAmount": 0}
     )
     assert r.status_code == 422 and field_errors(r) == {"requestedAmount": "greater_than"}
+
+
+def test_direct_status_patch_is_rejected(client, fast, flow):
+    draft = flow.filled_draft()
+    response = client.patch(f"/api/v1/applications/{draft['id']}", headers=fast, json={"status": "APPROVED"})
+    assert response.status_code == 422
+    assert flow.get(draft["id"])["status"] == "DRAFT"
+
+
+def test_unexpected_pipeline_failure_rolls_back_submission(client, fast, flow, monkeypatch):
+    draft = flow.filled_draft()
+    key = uuid.uuid4().hex
+
+    def fail(*args):
+        raise RuntimeError("Injected technical failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr("app.domain.pipeline.decide", fail)
+        assert flow.submit(draft["id"], key).status_code == 500
+    current = flow.get(draft["id"])
+    assert current["status"] == "DRAFT" and current["decision"] is None
+    assert [h["toStatus"] for h in current["history"]] == ["DRAFT"]
+    assert flow.submit(draft["id"], key).status_code == 202
