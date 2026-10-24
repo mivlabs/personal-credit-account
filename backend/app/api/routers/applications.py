@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Header, Path, Query, Response, status
+from fastapi import APIRouter, Body, Header, Path, Query, Response, status
 
 from app.api.deps import AnyUser, ClientUser, DbSession
 from app.api.responses import CLIENT_ERRORS, R401, R403, R404, R409
@@ -14,6 +14,7 @@ from app.schemas.application import (
     MissingInfoAnswer,
     SignRequest,
     TimelineOut,
+    WithdrawRequest,
 )
 from app.services import applications as service
 from app.services.idempotency import execute
@@ -217,4 +218,32 @@ def signApplication(
         body.model_dump(mode="json"),
         ApplicationOut,
         lambda: service.sign_application(session, user, application_id, body.code),
+    )
+
+
+@router.post(
+    "/{application_id}/withdraw",
+    response_model=ApplicationOut,
+    summary="Отозвать заявку",
+    responses={**R401, **R403, **R404, **R409},
+)
+def withdrawApplication(
+    application_id: ApplicationId,
+    user: ClientUser,
+    session: DbSession,
+    body: Annotated[WithdrawRequest | None, Body()] = None,
+    idempotency_key: CommandKey = None,
+) -> ApplicationOut:
+    """`DRAFT` / `NEEDS_INFO` / `MANUAL_REVIEW` → `WITHDRAWN`. После оффера отказ идёт через
+    `offer/decline` (`DECLINED_BY_CLIENT`). Тело и `Idempotency-Key` необязательны."""
+    reason = body.reason if body else None
+    return execute(
+        session,
+        user,
+        application_id,
+        "withdraw",
+        idempotency_key,
+        {"reason": reason},
+        ApplicationOut,
+        lambda: service.withdraw_application(session, user, application_id, reason),
     )

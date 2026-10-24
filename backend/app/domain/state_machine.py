@@ -86,6 +86,9 @@ TRANSITIONS: tuple[Transition, ...] = (
     Transition(
         S.COUNTER_OFFER, S.DECLINED_BY_CLIENT, Actor.CLIENT, "Клиент отказался от встречного предложения"
     ),
+    Transition(S.DRAFT, S.WITHDRAWN, Actor.CLIENT, "Клиент отозвал черновик"),
+    Transition(S.NEEDS_INFO, S.WITHDRAWN, Actor.CLIENT, "Клиент отозвал заявку вместо дозаполнения данных"),
+    Transition(S.MANUAL_REVIEW, S.WITHDRAWN, Actor.CLIENT, "Клиент отозвал заявку до решения специалиста"),
     Transition(S.OFFER_ACCEPTED, S.SIGNING, Actor.SYSTEM, "Подготовлено подписание"),
     Transition(S.SIGNING, S.ISSUED, Actor.CLIENT, "Код подписи подтверждён"),
 )

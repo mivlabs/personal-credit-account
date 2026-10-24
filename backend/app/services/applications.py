@@ -280,6 +280,24 @@ def decline_offer(session: Session, user: AuthUser, application_id: int) -> Appl
     return application_out(session, app)
 
 
+def withdraw_application(
+    session: Session, user: AuthUser, application_id: int, reason: str | None
+) -> ApplicationOut:
+    """Клиент отзывает заявку до решения: DRAFT, NEEDS_INFO или MANUAL_REVIEW → WITHDRAWN."""
+    app = load_application(session, application_id, user, lock=True)
+    allowed = (S.DRAFT, S.NEEDS_INFO, S.MANUAL_REVIEW)
+    if app.status_code not in {s.value for s in allowed}:
+        raise InvalidTransitionError(
+            "Отозвать заявку можно в статусах "
+            + ", ".join(f"«{STATUS_NAMES[s]}»" for s in allowed)
+            + f"; сейчас: «{status_name(app.status_code)}»"
+        )
+    comment = "Клиент отозвал заявку" + (f": {reason.strip()}" if reason and reason.strip() else "")
+    transition(session, app, S.WITHDRAWN, user.id, comment, actor=Actor.CLIENT)
+    _commit(session)
+    return application_out(session, app)
+
+
 def sign_application(session: Session, user: AuthUser, application_id: int, code: str) -> ApplicationOut:
     app = load_application(session, application_id, user, lock=True)
     if app.status_code != S.SIGNING.value:

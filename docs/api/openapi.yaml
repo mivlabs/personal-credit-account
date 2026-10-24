@@ -769,6 +769,82 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/applications/{application_id}/withdraw:
+    post:
+      tags:
+      - applications
+      summary: Отозвать заявку
+      description: '`DRAFT` / `NEEDS_INFO` / `MANUAL_REVIEW` → `WITHDRAWN`. После оффера отказ идёт через
+
+        `offer/decline` (`DECLINED_BY_CLIENT`). Тело и `Idempotency-Key` необязательны.'
+      operationId: withdrawApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 64
+          - type: 'null'
+          title: Idempotency-Key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/WithdrawRequest'
+              - type: 'null'
+              title: Body
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
   /api/v1/underwriter/queue:
     get:
       tags:
@@ -1392,6 +1468,7 @@ components:
       - SIGNING
       - ISSUED
       - DECLINED_BY_CLIENT
+      - WITHDRAWN
       title: ApplicationStatus
     ApplicationSummary:
       properties:
@@ -2819,6 +2896,19 @@ components:
       - CLIENT
       - UNDERWRITER
       title: UserRole
+    WithdrawRequest:
+      properties:
+        reason:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Reason
+          description: Причина отзыва, необязательно
+      type: object
+      title: WithdrawRequest
+      examples:
+      - reason: Нашли другое финансирование
   securitySchemes:
     bearerAuth:
       type: http

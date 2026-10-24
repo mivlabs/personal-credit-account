@@ -23,6 +23,7 @@
 | `SIGNING` | Подписание | нет |
 | `ISSUED` | Кредит выдан | да |
 | `DECLINED_BY_CLIENT` | Вы отказались | да |
+| `WITHDRAWN` | Заявка отозвана | да |
 
 ## Переходы
 
@@ -48,6 +49,9 @@
 | `APPROVED` | `DECLINED_BY_CLIENT` | Клиент | Клиент отказался от оффера |
 | `COUNTER_OFFER` | `OFFER_ACCEPTED` | Клиент | Клиент принял встречное предложение |
 | `COUNTER_OFFER` | `DECLINED_BY_CLIENT` | Клиент | Клиент отказался от встречного предложения |
+| `DRAFT` | `WITHDRAWN` | Клиент | Клиент отозвал черновик |
+| `NEEDS_INFO` | `WITHDRAWN` | Клиент | Клиент отозвал заявку вместо дозаполнения данных |
+| `MANUAL_REVIEW` | `WITHDRAWN` | Клиент | Клиент отозвал заявку до решения специалиста |
 | `OFFER_ACCEPTED` | `SIGNING` | Система | Подготовлено подписание |
 | `SIGNING` | `ISSUED` | Клиент | Код подписи подтверждён |
 
@@ -76,9 +80,13 @@ stateDiagram-v2
     APPROVED --> DECLINED_BY_CLIENT: Клиент
     COUNTER_OFFER --> OFFER_ACCEPTED: Клиент
     COUNTER_OFFER --> DECLINED_BY_CLIENT: Клиент
+    DRAFT --> WITHDRAWN: Клиент
+    NEEDS_INFO --> WITHDRAWN: Клиент
+    MANUAL_REVIEW --> WITHDRAWN: Клиент
     OFFER_ACCEPTED --> SIGNING: Система
     SIGNING --> ISSUED: Клиент
     REJECTED --> [*]
     ISSUED --> [*]
     DECLINED_BY_CLIENT --> [*]
+    WITHDRAWN --> [*]
 ```

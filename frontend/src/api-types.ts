@@ -278,6 +278,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/applications/{application_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Отозвать заявку
+         * @description `DRAFT` / `NEEDS_INFO` / `MANUAL_REVIEW` → `WITHDRAWN`. После оффера отказ идёт через
+         *     `offer/decline` (`DECLINED_BY_CLIENT`). Тело и `Idempotency-Key` необязательны.
+         */
+        post: operations["withdrawApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/underwriter/queue": {
         parameters: {
             query?: never;
@@ -577,7 +598,7 @@ export interface components {
          * ApplicationStatus
          * @enum {string}
          */
-        ApplicationStatus: "DRAFT" | "SUBMITTED" | "CHECKING" | "EXTERNAL_CHECK" | "SCORING" | "NEEDS_INFO" | "MANUAL_REVIEW" | "APPROVED" | "COUNTER_OFFER" | "REJECTED" | "OFFER_ACCEPTED" | "SIGNING" | "ISSUED" | "DECLINED_BY_CLIENT";
+        ApplicationStatus: "DRAFT" | "SUBMITTED" | "CHECKING" | "EXTERNAL_CHECK" | "SCORING" | "NEEDS_INFO" | "MANUAL_REVIEW" | "APPROVED" | "COUNTER_OFFER" | "REJECTED" | "OFFER_ACCEPTED" | "SIGNING" | "ISSUED" | "DECLINED_BY_CLIENT" | "WITHDRAWN";
         /**
          * ApplicationSummary
          * @description Строка списка «мои заявки».
@@ -1592,6 +1613,19 @@ export interface components {
          * @enum {string}
          */
         UserRole: "CLIENT" | "UNDERWRITER";
+        /**
+         * WithdrawRequest
+         * @example {
+         *       "reason": "Нашли другое финансирование"
+         *     }
+         */
+        WithdrawRequest: {
+            /**
+             * Reason
+             * @description Причина отзыва, необязательно
+             */
+            reason?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -2358,6 +2392,80 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["SignRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationOut"];
+                };
+            };
+            /** @description Нет токена, он недействителен или истёк */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Роль пользователя не позволяет это действие */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Не найдено. Для клиента заявка другой компании тоже отдаёт 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Ошибка валидации: `errors[]` указывает на поля */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    withdrawApplication: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Идентификатор заявки */
+                application_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WithdrawRequest"] | null;
             };
         };
         responses: {

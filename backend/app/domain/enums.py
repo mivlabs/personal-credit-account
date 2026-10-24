@@ -16,6 +16,7 @@ class ApplicationStatus(StrEnum):
     SIGNING = "SIGNING"
     ISSUED = "ISSUED"
     DECLINED_BY_CLIENT = "DECLINED_BY_CLIENT"
+    WITHDRAWN = "WITHDRAWN"
 
 
 # Названия статусов для клиента (источник и для API, и для seed справочника dim_application_status)
@@ -34,6 +35,7 @@ STATUS_NAMES: dict[ApplicationStatus, str] = {
     ApplicationStatus.SIGNING: "Подписание",
     ApplicationStatus.ISSUED: "Кредит выдан",
     ApplicationStatus.DECLINED_BY_CLIENT: "Вы отказались",
+    ApplicationStatus.WITHDRAWN: "Заявка отозвана",
 }
 
 FINAL_STATUSES: frozenset[ApplicationStatus] = frozenset(
@@ -41,6 +43,7 @@ FINAL_STATUSES: frozenset[ApplicationStatus] = frozenset(
         ApplicationStatus.REJECTED,
         ApplicationStatus.ISSUED,
         ApplicationStatus.DECLINED_BY_CLIENT,
+        ApplicationStatus.WITHDRAWN,
     }
 )
 

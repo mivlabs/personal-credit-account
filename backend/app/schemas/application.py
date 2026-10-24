@@ -337,6 +337,12 @@ class AcceptOfferResponse(ApiModel):
     )
 
 
+class WithdrawRequest(ApiModel):
+    reason: str | None = Field(default=None, max_length=1000, description="Причина отзыва, необязательно")
+
+    model_config = ConfigDict(json_schema_extra={"examples": [{"reason": "Нашли другое финансирование"}]})
+
+
 class SignRequest(ApiModel):
     code: str = Field(min_length=1, max_length=16, description="Код подтверждения подписи")
 

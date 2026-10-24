@@ -248,8 +248,9 @@ def application_out(session: Session, app: LoanApplication, role: str = "CLIENT"
 
     actions = (
         {
-            S.DRAFT: ["edit", "submit"],
-            S.NEEDS_INFO: ["answer_info"],
+            S.DRAFT: ["edit", "submit", "withdraw"],
+            S.NEEDS_INFO: ["answer_info", "withdraw"],
+            S.MANUAL_REVIEW: ["withdraw"],
             S.APPROVED: ["accept_offer", "decline_offer"],
             S.COUNTER_OFFER: ["accept_offer", "decline_offer"],
             S.SIGNING: ["sign"],
@@ -274,7 +275,11 @@ def application_out(session: Session, app: LoanApplication, role: str = "CLIENT"
         created_at=app.create_dttm,
         updated_at=app.modify_dttm,
         history=history_items(audit_rows(session, app.application_id)),
-        open_info_requests=[info_request_out(r) for r in open_info_requests(session, app.application_id)],
+        open_info_requests=(
+            [info_request_out(r) for r in open_info_requests(session, app.application_id)]
+            if status == S.NEEDS_INFO
+            else []
+        ),
         decision=(
             ClientDecisionOut(
                 outcome=decision.outcome_code, reason=decision.reason_desc, decided_at=decision.create_dttm
