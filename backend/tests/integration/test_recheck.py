@@ -3,7 +3,7 @@
 from sqlalchemy import func, select
 
 from app.db.models import CreditDecision, ExternalCheck
-from tests.fakes import GOOD, screen, submit
+from tests.integration.fakes import GOOD, screen, submit
 
 RECHECK = "/api/v1/underwriter/applications/{}/recheck"
 

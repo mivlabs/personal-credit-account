@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import Flow
+from tests.integration.conftest import Flow
 
 DECISION = "/api/v1/underwriter/applications/{}/decision"
 

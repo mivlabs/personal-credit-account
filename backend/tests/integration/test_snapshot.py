@@ -7,8 +7,8 @@ import pytest
 from sqlalchemy import select, text
 
 from app.db.models import CreditDecision
-from tests.conftest import BACKEND_DIR
-from tests.fakes import BORDERLINE, BORDERLINE_LIMIT, GOOD, screen, submit
+from tests.integration.conftest import BACKEND_DIR
+from tests.integration.fakes import BORDERLINE, BORDERLINE_LIMIT, GOOD, screen, submit
 
 DECISION = "/api/v1/underwriter/applications/{}/decision"
 SECRET = "СЕКРЕТНЫЙ-ВНУТРЕННИЙ-КОММЕНТАРИЙ"

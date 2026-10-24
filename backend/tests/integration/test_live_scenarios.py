@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import func, select
 
 from app.db.models import CreditDecision, ExternalCheck
-from tests.conftest import Flow, login_headers
+from tests.integration.conftest import Flow, login_headers
 
 pytestmark = pytest.mark.live_integrations
 

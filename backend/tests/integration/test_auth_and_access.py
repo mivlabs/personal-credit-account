@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import Flow
+from tests.integration.conftest import Flow
 
 
 def test_login_returns_token_and_user(client: TestClient):

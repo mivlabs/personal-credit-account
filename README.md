@@ -109,8 +109,14 @@ Playwright проверяет реальные Docker web/API в Google Chrome. 
 
 ### Тесты и линтер
 
-Тесты идут против настоящего PostgreSQL. На каждый прогон пересоздаётся отдельная БД `credit_test` на сервере из
-`DATABASE_URL`, миграции накатываются Alembic, затем выполняется настоящий seed.
+Тесты разделены на два набора:
+
+- `tests/unit` — движок решения, ставка, офферы, подбор продукта, стейт-машина (таблица переходов), политика повторов
+  HTTP-клиента. Не требует Postgres и WireMock: `cd backend && uv run pytest tests/unit`.
+- `tests/integration` — всё остальное, против настоящего PostgreSQL и WireMock. На каждый прогон пересоздаётся отдельная
+  БД `credit_test` на сервере из `DATABASE_URL`, миграции накатываются Alembic, затем выполняется настоящий seed.
+  Перед стартом проверяются `MOCKS_BASE_URL/__admin/health` и подключение к Postgres; если чего-то нет, pytest
+  завершается с кодом 2 и подсказкой, как поднять (`docker compose up -d db mocks`).
 
 ```bash
 # в Docker (БД поднимается сама)
@@ -119,7 +125,10 @@ docker compose --profile test run --rm tests
 # локально (нужен uv и запущенная БД из compose)
 cd backend
 uv sync
-DATABASE_URL=postgresql+psycopg://credit:credit@127.0.0.1:55432/credit uv run pytest
+uv run pytest tests/unit        # без инфраструктуры
+docker compose up -d db mocks   # для интеграционных тестов
+DATABASE_URL=postgresql+psycopg://credit:credit@127.0.0.1:55432/credit MOCKS_BASE_URL=http://127.0.0.1:8081 uv run pytest
+# на Windows указывайте 127.0.0.1, а не localhost: попытка IPv6 (::1) даёт таймаут на каждое подключение
 
 uv run ruff check . && uv run ruff format --check .
 ```
@@ -168,7 +177,8 @@ backend/
     seed/         идемпотентный seed
     scripts/      экспорт OpenAPI и стейт-машины, smoke-проверка
   alembic/        миграции
-  tests/          pytest против PostgreSQL
+  tests/unit/     быстрые тесты без инфраструктуры
+  tests/integration/  pytest против PostgreSQL и WireMock
 ```
 
 <!-- backend:end -->

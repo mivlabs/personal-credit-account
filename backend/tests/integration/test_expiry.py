@@ -7,7 +7,7 @@ import pytest
 
 from app.db.session import get_sessionmaker
 from app.services.expiry import expire_all_stale
-from tests.fakes import GOOD, submit
+from tests.integration.fakes import GOOD, submit
 
 NO_REVENUE = {**GOOD, "FNS": {"annualRevenue": None}}
 

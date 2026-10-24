@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import LoanApplication, LoanApplicationAud
-from tests.conftest import Flow
+from tests.integration.conftest import Flow
 
 
 def field_errors(response) -> dict[str, str]:

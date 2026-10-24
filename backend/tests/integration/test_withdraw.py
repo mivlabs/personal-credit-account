@@ -2,7 +2,7 @@
 
 import uuid
 
-from tests.fakes import GOOD, submit
+from tests.integration.fakes import GOOD, submit
 
 
 def withdraw(client, headers, app_id, key=None, **body):

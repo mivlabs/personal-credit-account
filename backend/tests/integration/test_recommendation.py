@@ -2,9 +2,6 @@
 
 import pytest
 
-from app.domain.enums import PurposeCategory
-from app.domain.recommendation import load_recommendation_config
-
 URL = "/api/v1/products/recommendations"
 
 
@@ -106,7 +103,3 @@ def test_validation(client, fast, body):
 def test_requires_client_role(client, underwriter):
     assert client.post(URL, json={"purposeCategory": "OTHER"}).status_code == 401
     assert client.post(URL, headers=underwriter, json={"purposeCategory": "OTHER"}).status_code == 403
-
-
-def test_rules_cover_every_category():
-    assert set(load_recommendation_config().purposes) == set(PurposeCategory)

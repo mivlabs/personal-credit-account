@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import func, select
 
 from app.db.models import Disbursement
-from tests.conftest import Flow
+from tests.integration.conftest import Flow
 
 pytestmark = pytest.mark.live_integrations
 
@@ -40,7 +40,7 @@ def test_concurrent_accept_and_sign_replay_are_atomic(client, fast, db):
 
 
 def test_failed_sign_not_cached_and_info_replay(client):
-    from tests.conftest import login_headers
+    from tests.integration.conftest import login_headers
 
     headers = login_headers(client, "client_info")
     flow = Flow(client, headers)
