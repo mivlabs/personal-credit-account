@@ -1,0 +1,14 @@
+{
+  "priority": 8,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/egrul/([0-9]{8}3[0-9]|[0-9]{9}3[0-9]{2})"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n  \"active\": true,\n  \"registrationDate\": \"2012-02-20\",\n  \"industry\": \"manufacturing\",\n  \"name\": \"{{#if (matches request.path.[1] '[0-9]{12}')}}ИП Синтетика {{request.path.[1]}}{{else}}ООО «Синтетика {{request.path.[1]}}»{{/if}}\",\n  \"ogrn\": \"{{#if (matches request.path.[1] '[0-9]{12}')}}31{{request.path.[1]}}0{{else}}10{{request.path.[1]}}1{{/if}}\",\n  \"legalAddress\": \"г. Москва, ул. Синтетическая, д. 4\"\n}"
+  }
+}
