@@ -2769,5 +2769,21 @@
     ],
     "dev": true,
     "source": "package-lock.json package metadata"
+  },
+  {
+    "ecosystem": "font (vendored)",
+    "name": "Manrope Variable",
+    "version": "5.3.0",
+    "license": "OFL-1.1",
+    "license_files": [],
+    "source": "frontend/src/fonts/manrope-*.woff2, from @fontsource-variable/manrope"
+  },
+  {
+    "ecosystem": "font (vendored)",
+    "name": "Unbounded Variable",
+    "version": "5.3.0",
+    "license": "OFL-1.1",
+    "license_files": [],
+    "source": "frontend/src/fonts/unbounded-*.woff2, from @fontsource-variable/unbounded"
   }
 ]

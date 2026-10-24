@@ -282,3 +282,5 @@ EGRUL, FNS and BKI are simulated locally in WireMock; no external financial data
 |---|---|---|
 | Manrope Variable (frontend/src/fonts/manrope-*.woff2, from @fontsource-variable/manrope) | 5.3.0 | OFL-1.1 |
 | Unbounded Variable (frontend/src/fonts/unbounded-*.woff2, from @fontsource-variable/unbounded) | 5.3.0 | OFL-1.1 |
+
+Both fonts are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org/).

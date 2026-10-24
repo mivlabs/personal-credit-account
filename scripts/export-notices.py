@@ -55,6 +55,22 @@ for package, meta in sorted(lock["packages"].items()):
             "source": "package-lock.json package metadata",
         }
     )
+FONTS = [
+    ("Manrope Variable", "frontend/src/fonts/manrope-*.woff2", "@fontsource-variable/manrope"),
+    ("Unbounded Variable", "frontend/src/fonts/unbounded-*.woff2", "@fontsource-variable/unbounded"),
+]
+FONT_VERSION = "5.3.0"
+for name, path, origin in FONTS:
+    rows.append(
+        {
+            "ecosystem": "font (vendored)",
+            "name": name,
+            "version": FONT_VERSION,
+            "license": "OFL-1.1",
+            "license_files": [],
+            "source": f"{path}, from {origin}",
+        }
+    )
 (ROOT / "docs/third-party-inventory.json").write_text(
     json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
 )
@@ -68,7 +84,7 @@ lines = [
     "| Ecosystem | Package | Version | Declared license |",
     "|---|---|---|---|",
 ]
-for r in rows:
+for r in (r for r in rows if r["ecosystem"] != "font (vendored)"):
     lines.append(
         "| "
         + " | ".join(str(r[k]).replace("|", " / ") for k in ["ecosystem", "name", "version", "license"])
@@ -79,6 +95,17 @@ lines += [
     "Container infrastructure: PostgreSQL 16, WireMock 3.13.2, Nginx, Python, Node.js, uv. Container OS dependencies have their own notices in the images and are outside this package metadata inventory. Check upstream image notices before redistribution.",
     "",
     "EGRUL, FNS and BKI are simulated locally in WireMock; no external financial data, model weights or real bank integrations are distributed.",
+    "",
+    "## Vendored font files (not npm packages)",
+    "",
+    "| Asset | Version | Declared license |",
+    "|---|---|---|",
+]
+for name, path, origin in FONTS:
+    lines.append(f"| {name} ({path}, from {origin}) | {FONT_VERSION} | OFL-1.1 |")
+lines += [
+    "",
+    "Both fonts are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org/).",
 ]
 (ROOT / "THIRD_PARTY_NOTICES").write_text("\n".join(lines) + "\n", encoding="utf-8")
 print(f"Generated notices for {len(rows)} package records")
