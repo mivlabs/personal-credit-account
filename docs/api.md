@@ -17,3 +17,10 @@
 Ручное решение выше расчётного лимита: `DecisionRequest.overrideLimit` (по умолчанию false). APPROVED на запрошенную сумму или COUNTER_OFFER выше `autoLimit` без `overrideLimit: true` возвращает 422 с полем `overrideLimit` (`LIMIT_EXCEEDED`). Если AUTO-лимита нет, решение не блокируется, в снимок пишется `limitUnknown: true`.
 
 Примеры запросов: [demo.http](api/demo.http).
+
+Сессия 2. Новые команды и поля:
+
+- `POST /underwriter/applications/{id}/recheck`, тело `{comment}` (обязателен): повторная проверка источников, только в `MANUAL_REVIEW` (иначе 409), только андеррайтер (клиенту 403). Переход `MANUAL_REVIEW → EXTERNAL_CHECK`, конвейер идёт заново: новые `external_check` и новое AUTO-решение со снимком. Действие `RECHECK` в `availableActions`.
+- `POST /applications/{id}/withdraw`, тело `{reason?}`, необязательный `Idempotency-Key`: отзыв из `DRAFT`, `NEEDS_INFO`, `MANUAL_REVIEW` → `WITHDRAWN`. Для `APPROVED`/`COUNTER_OFFER` остаётся `offer/decline`. Действие `WITHDRAW` в `availableActions`. Отозванные заявки не попадают в очередь андеррайтера по умолчанию.
+- Сроки: `offer.validUntil` (`OFFER_TTL_DAYS`, 30) и `infoRequests[].dueAt` (`INFO_REQUEST_TTL_DAYS`, 14); у старых строк `null`. Если срок истёк, `offer/accept`, `offer/decline`, `missing-info` и `sign` переводят заявку в `EXPIRED` и возвращают 409 с кодом `EXPIRED`; переход сохраняется. Массовое закрытие: `python -m app.scripts.expire_stale`.
+- `POST /products/recommendations`, тело `{purposeCategory, amount?, termMonths?}`, роль клиента. Ответ: `{purposeCategory, purposeLabel, rulesVersion, items[{product, matchScore 0–100, recommended, reasons[], rateFrom}]}`, по убыванию `matchScore`. Категории: `WORKING_CAPITAL_TOPUP`, `GOODS_PURCHASE`, `EQUIPMENT_PURCHASE`, `CASH_GAP`, `SEASONAL`, `EXPANSION`, `OTHER`.

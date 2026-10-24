@@ -71,7 +71,9 @@ def test_term_above_max_switches_recommendation(client, fast):
     items = recommend(client, fast, purposeCategory="CASH_GAP", termMonths=24)["items"]
     od = next(i for i in items if i["product"]["code"] == "OVERDRAFT")
     assert any("больше максимума" in r for r in od["reasons"]) and od["recommended"] is False
-    assert items[0]["product"]["code"] == "WORKING_CAPITAL" and items[0]["recommended"] is False
+    # оборотный подходит по сроку, но слабо по цели (ниже порога): рекомендации нет
+    wc = next(i for i in items if i["product"]["code"] == "WORKING_CAPITAL")
+    assert wc["matchScore"] == 35 and not any(i["recommended"] for i in items)
 
 
 def test_term_below_min_and_atypical(client, fast):

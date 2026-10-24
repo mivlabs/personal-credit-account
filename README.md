@@ -147,6 +147,13 @@ uv run python -m app.scripts.export_state_machine  # docs/state-machine.md
 
 Ставка по кредиту = ключевая ставка ЦБ + спред продукта + риск-надбавка. Ключевая ставка в [`policy.yaml`](backend/app/domain/decision/policy.yaml): 14,0% на 2026-09-11 (решение Совета директоров Банка России). **Значение нужно сверить с cbr.ru на дату проверки** и при необходимости переопределить переменными `KEY_RATE_PCT` и `KEY_RATE_DATE` (пример: `KEY_RATE_PCT=15.5 KEY_RATE_DATE=2026-10-30 docker compose up --build`).
 
+### Сроки, отзыв и подбор продукта
+
+- Оффер действует `OFFER_TTL_DAYS` (30) дней, запрос данных `INFO_REQUEST_TTL_DAYS` (14). Истёкшие заявки получают статус `EXPIRED` при первой команде клиента (ответ 409 `EXPIRED`) или разом скриптом:
+  `cd backend && uv run python -m app.scripts.expire_stale` (в Docker: `docker compose run --rm api python -m app.scripts.expire_stale`).
+- Клиент может отозвать заявку (`POST /applications/{id}/withdraw`), андеррайтер может повторно проверить источники (`POST /underwriter/applications/{id}/recheck`).
+- Подбор продукта: `POST /products/recommendations`, правила в [`recommendation.yaml`](backend/app/domain/recommendation.yaml).
+
 ### Структура бэкенда
 
 ```

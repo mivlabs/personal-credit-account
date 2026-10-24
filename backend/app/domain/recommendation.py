@@ -127,8 +127,9 @@ def rank_products(
 
     order = list(ProductCode)
     scored.sort(key=lambda s: (-s[1], order.index(s[0].code)))
-    best = scored[0][0]
+    # Рекомендуется лучший из продуктов, у которых сумма и срок в допустимых диапазонах
+    best = next((p for p, _, in_range, _ in scored if in_range), None)
     return [
-        Match(p.code, score, p is best and in_range and score >= config.recommend_threshold, reasons)
+        Match(p.code, score, p is best and score >= config.recommend_threshold, reasons)
         for p, score, in_range, reasons in scored
     ]

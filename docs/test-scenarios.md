@@ -22,3 +22,11 @@
 Проверки команд: одинаковый ключ accept/sign/missing-info и тело возвращает исходный ответ, другое тело даёт 409. Конкурентные повторы не создают вторую проверку/оффер/выдачу; подпись до принятия оффера запрещена. Тесты идут на PostgreSQL, HTTP-интеграционные сценарии — на настоящем WireMock.
 
 Команды: docker compose --profile test run --build --rm tests; в frontend: npm ci, npm run typecheck, npm run build, npm run test:e2e. Playwright использует установленный Google Chrome; для другого браузера изменить channel в playwright.config.ts. WEB_URL переопределяет адрес стенда.
+
+Повторная проверка (recheck): войти как client_timeout, подать заявку (БКИ недоступен → MANUAL_REVIEW). Под underwriter открыть заявку, нажать «Повторная проверка источников», ввести комментарий. Статус снова MANUAL_REVIEW, в карточке новый набор проверок и новое AUTO-решение, в аудите переход `MANUAL_REVIEW → EXTERNAL_CHECK` с комментарием.
+
+Отзыв: у клиента в статусе DRAFT, NEEDS_INFO или MANUAL_REVIEW нажать «Отозвать заявку». Статус «Заявка отозвана», заявка исчезла из очереди андеррайтера. Для APPROVED и COUNTER_OFFER доступен только отказ от оффера.
+
+Истечение срока: сроки задаются `OFFER_TTL_DAYS` и `INFO_REQUEST_TTL_DAYS`; для проверки вручную запустить с `OFFER_TTL_DAYS=1`, дождаться истечения (или сдвинуть `valid_until_dttm` в БД) и принять оффер: 409 `EXPIRED`, статус «Срок истёк». Массово: `cd backend && uv run python -m app.scripts.expire_stale`. Автотесты сдвигают «сейчас» через `app.core.clock.now`.
+
+Подбор продукта: `POST /products/recommendations` с `{"purposeCategory":"CASH_GAP","amount":1000000,"termMonths":6}` даёт овердрафт первым с `recommended: true`; с `amount: 40000000` для `WORKING_CAPITAL_TOPUP` причины содержат «сумма 40 млн ₽ выше максимума продукта», рекомендации нет.

@@ -64,6 +64,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Подбор продукта по цели
+         * @description Продукты по убыванию соответствия цели, сумме и сроку, с причинами оценки. Без LLM, правила в `recommendation.yaml`.
+         */
+        post: operations["recommendProducts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies/me": {
         parameters: {
             query?: never;
@@ -598,7 +618,7 @@ export interface components {
          * ApplicationStatus
          * @enum {string}
          */
-        ApplicationStatus: "DRAFT" | "SUBMITTED" | "CHECKING" | "EXTERNAL_CHECK" | "SCORING" | "NEEDS_INFO" | "MANUAL_REVIEW" | "APPROVED" | "COUNTER_OFFER" | "REJECTED" | "OFFER_ACCEPTED" | "SIGNING" | "ISSUED" | "DECLINED_BY_CLIENT" | "WITHDRAWN";
+        ApplicationStatus: "DRAFT" | "SUBMITTED" | "CHECKING" | "EXTERNAL_CHECK" | "SCORING" | "NEEDS_INFO" | "MANUAL_REVIEW" | "APPROVED" | "COUNTER_OFFER" | "REJECTED" | "OFFER_ACCEPTED" | "SIGNING" | "ISSUED" | "DECLINED_BY_CLIENT" | "WITHDRAWN" | "EXPIRED";
         /**
          * ApplicationSummary
          * @description Строка списка «мои заявки».
@@ -920,7 +940,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
+        ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "EXPIRED" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
         /** ExplainedFactor */
         ExplainedFactor: {
             /** Code */
@@ -1073,6 +1093,11 @@ export interface components {
             createdAt: string;
             /** Answeredat */
             answeredAt: string | null;
+            /**
+             * Dueat
+             * @description Срок ответа; после него заявка истекает
+             */
+            dueAt: string | null;
         };
         /**
          * InfoRequestStatus
@@ -1203,6 +1228,11 @@ export interface components {
             acceptedAt: string | null;
             /** Signedat */
             signedAt: string | null;
+            /**
+             * Validuntil
+             * @description До какого момента оффер можно принять; null у старых офферов
+             */
+            validUntil: string | null;
         };
         /**
          * OfferStatus
@@ -1340,6 +1370,36 @@ export interface components {
              */
             requirements: string | null;
         };
+        /** ProductRecommendation */
+        ProductRecommendation: {
+            product: components["schemas"]["ProductOut"];
+            /**
+             * Matchscore
+             * @description Соответствие цели, суммы и срока продукту, 0–100
+             */
+            matchScore: number;
+            /**
+             * Recommended
+             * @description Лучший продукт, подходящий по сумме и сроку
+             */
+            recommended: boolean;
+            /**
+             * Reasons
+             * @description Почему продукт получил такую оценку
+             */
+            reasons: string[];
+            /**
+             * Ratefrom
+             * @description Ставка «от», % годовых (единая функция ставки)
+             */
+            rateFrom: number;
+        };
+        /**
+         * PurposeCategory
+         * @description Категория цели кредита для подбора продукта (domain/recommendation.yaml).
+         * @enum {string}
+         */
+        PurposeCategory: "WORKING_CAPITAL_TOPUP" | "GOODS_PURCHASE" | "EQUIPMENT_PURCHASE" | "CASH_GAP" | "SEASONAL" | "EXPANSION" | "OTHER";
         /**
          * QueueItem
          * @example {
@@ -1455,6 +1515,37 @@ export interface components {
              * @description Зачем нужна повторная проверка (обязателен, пишется в аудит)
              */
             comment: string;
+        };
+        /** RecommendationRequest */
+        RecommendationRequest: {
+            /** @description Категория цели кредита */
+            purposeCategory: components["schemas"]["PurposeCategory"];
+            /**
+             * Amount
+             * @description Желаемая сумма, ₽
+             */
+            amount?: number | null;
+            /**
+             * Termmonths
+             * @description Желаемый срок, мес.
+             */
+            termMonths?: number | null;
+        };
+        /** RecommendationsOut */
+        RecommendationsOut: {
+            purposeCategory: components["schemas"]["PurposeCategory"];
+            /** Purposelabel */
+            purposeLabel: string;
+            /**
+             * Rulesversion
+             * @description Версия правил подбора (recommendation.yaml)
+             */
+            rulesVersion: string;
+            /**
+             * Items
+             * @description Продукты по убыванию соответствия
+             */
+            items: components["schemas"]["ProductRecommendation"][];
         };
         /**
          * SignRequest
@@ -1735,6 +1826,57 @@ export interface operations {
             };
             /** @description Роль пользователя не позволяет это действие */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    recommendProducts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecommendationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationsOut"];
+                };
+            };
+            /** @description Нет токена, он недействителен или истёк */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Роль пользователя не позволяет это действие */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Ошибка валидации: `errors[]` указывает на поля */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

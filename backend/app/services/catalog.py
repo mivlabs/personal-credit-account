@@ -7,8 +7,8 @@ from app.api.deps import AuthUser
 from app.core.errors import NotFoundError
 from app.db.models import Company, DimCreditProduct
 from app.domain.enums import ProductCode
-from app.schemas.company import CompanyOut
 from app.domain.recommendation import ProductLimits, load_recommendation_config, rank_products
+from app.schemas.company import CompanyOut
 from app.schemas.product import ProductOut, ProductRecommendation, RecommendationRequest, RecommendationsOut
 from app.services.mappers import company_out, product_out
 
