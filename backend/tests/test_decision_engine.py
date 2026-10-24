@@ -72,3 +72,65 @@ def test_configuration_rejects_invalid_thresholds_and_bands():
         type(c).model_validate({**c.model_dump(), "reject_threshold": 80})
     with pytest.raises(ValueError):
         type(c).model_validate({**c.model_dump(), "age_bands": [(24, 20), (12, 15)]})
+
+
+def test_age_is_counted_from_as_of_date_not_policy_snapshot(monkeypatch):
+    from datetime import date
+    from types import SimpleNamespace
+
+    from app.core.config import get_settings
+    from app.domain.clock import age_in_months, as_of_date
+    from app.domain.decision.engine import decide
+    from app.domain.enums import CheckSource, CheckStatus
+    from app.integrations.base import ExternalData, SourceResult
+
+    assert age_in_months(date(2026, 1, 23), date(2026, 10, 22)) == 8
+    assert age_in_months(date(2026, 1, 23), date(2026, 10, 23)) == 9
+
+    def run(as_of_env):
+        monkeypatch.setenv("AS_OF_DATE", as_of_env)
+        get_settings.cache_clear()
+        data = ExternalData(
+            {
+                CheckSource.EGRUL: SourceResult(
+                    CheckSource.EGRUL,
+                    CheckStatus.OK,
+                    {"active": True, "registrationDate": "2026-05-01", "industry": "services"},
+                ),
+                CheckSource.FNS: SourceResult(CheckSource.FNS, CheckStatus.OK, {"annualRevenue": "12000000"}),
+                CheckSource.BKI: SourceResult(
+                    CheckSource.BKI, CheckStatus.OK, {"debtAmount": "0", "overdueDays": 0}
+                ),
+            }
+        )
+        app = SimpleNamespace(
+            revenue_amt=None,
+            debt_amt=None,
+            requested_amt=D("1000000"),
+            product=SimpleNamespace(min_amt=D("300000"), max_amt=D("10000000")),
+        )
+        return decide(app, data, load_decision_config())
+
+    try:
+        # 2026-05-01 → на 2026-10-23 полных 5 месяцев (моложе 6): стоп-фактор; на 2026-11-02 уже 6
+        assert run("2026-10-23").rule_code == "YOUNG_COMPANY"
+        assert run("2026-11-02").rule_code != "YOUNG_COMPANY"
+    finally:
+        monkeypatch.setenv("AS_OF_DATE", "2026-10-23")
+        get_settings.cache_clear()
+    assert as_of_date() == date(2026, 10, 23)
+
+
+def test_as_of_date_defaults_to_moscow_today(monkeypatch):
+    from datetime import datetime
+
+    from app.core.config import get_settings
+    from app.domain.clock import MOSCOW, as_of_date
+
+    monkeypatch.delenv("AS_OF_DATE")
+    get_settings.cache_clear()
+    try:
+        assert as_of_date() == datetime.now(MOSCOW).date()
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()

@@ -95,6 +95,7 @@ services:
       <<: *api-env
       RUN_MIGRATIONS: "0" # тесты сами создают тестовую БД и накатывают миграции
       PIPELINE_STEP_DELAY_SECONDS: "0"
+      AS_OF_DATE: "2026-10-23" # детерминированные пороги возраста компании
       DOCS_DIR: /docs # тесты сверяют зафиксированные docs/api/openapi.yaml и docs/state-machine.md с кодом
     volumes:
       - ./docs:/docs:ro

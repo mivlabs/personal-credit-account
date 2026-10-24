@@ -39,6 +39,8 @@ def _prepare_database() -> str:
 os.environ["DATABASE_URL"] = _prepare_database()
 os.environ["PIPELINE_STEP_DELAY_SECONDS"] = "0"
 os.environ["LOG_LEVEL"] = "WARNING"
+# Возраст компаний считается от фиксированной даты, чтобы пороги были детерминированы
+os.environ["AS_OF_DATE"] = "2026-10-23"
 os.environ.setdefault("DEMO_SIGN_CODE", "123456")
 
 from alembic.config import Config  # noqa: E402

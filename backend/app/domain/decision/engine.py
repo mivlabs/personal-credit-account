@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import ROUND_DOWN, Decimal
 
+from app.domain.clock import age_in_months, as_of_date
 from app.domain.decision.config import DecisionConfig
 from app.domain.enums import ApplicationField, CheckSource, DecisionOutcome
 from app.integrations.base import ExternalData
@@ -125,7 +126,7 @@ def evaluate(data: DecisionInput, config: DecisionConfig) -> DecisionResult:
         ),
     ]
     explanations = {
-        "AGE_MONTHS": "Срок деятельности компании на дату демо-снимка",
+        "AGE_MONTHS": "Срок деятельности компании на дату расчёта (AS_OF_DATE)",
         "ANNUAL_REVENUE_RUB": "Выручка за полный год, в рублях",
         "DEBT_TO_ANNUAL_REVENUE": "Остаток долга, делённый на годовую выручку; меньшее значение даёт больше баллов",
         "OVERDUE_DAYS": "Число дней просрочки по синтетической кредитной истории",
@@ -159,7 +160,9 @@ def evaluate(data: DecisionInput, config: DecisionConfig) -> DecisionResult:
     )
 
 
-def decide(application, external_data: ExternalData, config: DecisionConfig) -> DecisionResult:
+def decide(
+    application, external_data: ExternalData, config: DecisionConfig, as_of: date | None = None
+) -> DecisionResult:
     def source(code):
         result = external_data.results.get(code)
         return result.data or {} if result else {}
@@ -169,13 +172,7 @@ def decide(application, external_data: ExternalData, config: DecisionConfig) -> 
     age = None
     if registered:
         registered = date.fromisoformat(registered)
-        snapshot = config.snapshot_date
-        age = (
-            (snapshot.year - registered.year) * 12
-            + snapshot.month
-            - registered.month
-            - (snapshot.day < registered.day)
-        )
+        age = age_in_months(registered, as_of or as_of_date())
 
     def amount(value):
         return Decimal(str(value)) if value is not None else None
