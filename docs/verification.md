@@ -55,7 +55,7 @@ Backend покрывает пороги 39/40/69/70, стоп-факторы и 
 
 ## Аудит P1/P2: сессия 3
 
-Проверка (2026-10-24, чистый стенд `docker compose down -v && docker compose up --build -d`, все четыре сервиса healthy): `ruff check`/`ruff format --check` чисто; `docker compose --profile test run --build --rm tests` — 199 passed; `uv run pytest tests/unit` — 54 passed без Postgres и WireMock; `npm run typecheck` и `npm run build` прошли; `python -m app.scripts.smoke` — «всё в порядке» (на Windows запускать с `PYTHONIOENCODING=utf-8`, иначе вывод кириллицы падает в cp1251); `npm run test:e2e` — 4 passed; `scripts/check-persistence.py` — PASS. Перезапуск api сохранил JWT-секрет с volume `jwtdata`: токен, выданный до рестарта, остался действительным. Проверка не выполнялась в Docker-контексте для `docker compose build web` с холодным кешем сверх уже пройденной сборки.
+Проверка (2026-10-24, чистый стенд `docker compose down -v && docker compose up --build -d`, все четыре сервиса healthy): `ruff check`/`ruff format --check` чисто; `docker compose --profile test run --build --rm tests` — 199 passed; `uv run pytest tests/unit` — 54 passed без Postgres и WireMock; `npm run typecheck` и `npm run build` прошли; `python -m app.scripts.smoke` — «всё в порядке» (на Windows запускать с `PYTHONIOENCODING=utf-8`, иначе вывод кириллицы падает в cp1251); `npm run test:e2e` — 4 passed; `scripts/check-persistence.py` — PASS. Перезапуск api сохранил JWT-секрет с volume `jwtdata`: токен, выданный до рестарта, остался действительным. Не проверялась сборка `web` с полностью холодным кешем Docker.
 
 | Пункт | Что сделано | Ключевые файлы | Тесты | Не сделано / примечание |
 |---|---|---|---|---|
