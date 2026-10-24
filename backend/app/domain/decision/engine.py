@@ -50,6 +50,23 @@ class DecisionInput:
     product_min: Decimal
     product_max: Decimal
     failed_sources: tuple[str, ...] = ()
+    # Значения анкеты и источников отдельно: подтверждённый источник приоритетнее анкеты
+    revenue_client: Decimal | None = None
+    debt_client: Decimal | None = None
+    revenue_source: Decimal | None = None
+    debt_source: Decimal | None = None
+    revenue_declared_only: bool = False
+
+
+DATA_MISMATCH_EXPLANATION = (
+    "Значение в анкете расходится с данными ФНС/БКИ больше допустимого порога; источник приоритетнее анкеты"
+)
+
+
+def diverges(client: Decimal, source: Decimal, threshold_pct: Decimal) -> bool:
+    if source == 0:
+        return client != 0
+    return abs(client - source) / abs(source) * 100 > threshold_pct
 
 
 def band_points(value, bands) -> int:
@@ -108,6 +125,24 @@ def evaluate(data: DecisionInput, config: DecisionConfig) -> DecisionResult:
             ),
             rule_code="MISSING_FINANCIALS",
         )
+    mismatches = [
+        (name, client, source)
+        for name, client, source in (
+            ("выручка", data.revenue_client, data.revenue_source),
+            ("долг", data.debt_client, data.debt_source),
+        )
+        if client is not None and source is not None and diverges(client, source, config.data_mismatch_pct)
+    ]
+    if mismatches:
+        details = "; ".join(f"{n}: в анкете {c}, по данным источника {s}" for n, c, s in mismatches)
+        return DecisionResult(
+            DecisionOutcome.MANUAL_REVIEW,
+            None,
+            [FactorResult("DATA_MISMATCH", details, 0, DATA_MISMATCH_EXPLANATION)],
+            reason="Данные анкеты расходятся с подтверждёнными данными: заявку проверит специалист",
+            note=f"DATA_MISMATCH (порог {config.data_mismatch_pct}%): {details}",
+            rule_code="DATA_MISMATCH",
+        )
     ratio = (
         data.debt / data.revenue if data.revenue else (Decimal(0) if not data.debt else Decimal("Infinity"))
     )
@@ -140,7 +175,10 @@ def evaluate(data: DecisionInput, config: DecisionConfig) -> DecisionResult:
         min(
             data.product_max, data.revenue * config.revenue_limit_share - data.debt * config.debt_limit_share
         ),
-    ).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+    )
+    if data.revenue_declared_only:
+        limit *= config.client_declared_limit_factor
+    limit = limit.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
     outcome, rule = apply_policy(score, data.requested, limit, data.product_min, config)
     reasons = {
         "LOW_SCORE": "Финансовые показатели и кредитная история пока не позволяют одобрить кредит",
@@ -178,24 +216,28 @@ def decide(
     def amount(value):
         return Decimal(str(value)) if value is not None else None
 
-    # Explicit application values, including answers to information requests, have priority.
-    revenue = (
-        application.revenue_amt if application.revenue_amt is not None else amount(fns.get("annualRevenue"))
-    )
-    debt = application.debt_amt if application.debt_amt is not None else amount(bki.get("debtAmount"))
+    # Подтверждённый источник приоритетнее анкеты; значение клиента нужно только при пустом источнике.
+    revenue_source = amount(fns.get("annualRevenue"))
+    debt_source = amount(bki.get("debtAmount"))
+    revenue = revenue_source if revenue_source is not None else application.revenue_amt
+    debt = debt_source if debt_source is not None else application.debt_amt
 
     def status_of(code):
         result = external_data.results.get(code)
         return result.status.value if result else "NOT_REQUESTED"
 
-    def inp(value, source, client_value=None):
-        if client_value is not None:
+    def inp(value, source, source_value=None, client_value=None):
+        if value is not None and source_value is None and client_value is not None:
+            # источник пуст: используется значение клиента
             return {"value": str(value), "source": "CLIENT", "status": "PROVIDED"}
-        return {
+        item = {
             "value": None if value is None else str(value),
             "source": source.value,
             "status": status_of(source),
         }
+        if client_value is not None and source_value is not None:
+            item["declaredValue"] = str(client_value)  # значение из анкеты для сравнения
+        return item
 
     inputs = {
         "requestedAmount": {
@@ -203,8 +245,8 @@ def decide(
             "source": "CLIENT",
             "status": "PROVIDED",
         },
-        "annualRevenue": inp(revenue, CheckSource.FNS, application.revenue_amt),
-        "debtAmount": inp(debt, CheckSource.BKI, application.debt_amt),
+        "annualRevenue": inp(revenue, CheckSource.FNS, revenue_source, application.revenue_amt),
+        "debtAmount": inp(debt, CheckSource.BKI, debt_source, application.debt_amt),
         "overdueDays": inp(bki.get("overdueDays"), CheckSource.BKI),
         "registrationDate": inp(egrul.get("registrationDate"), CheckSource.EGRUL),
         "active": inp(egrul.get("active"), CheckSource.EGRUL),
@@ -222,6 +264,11 @@ def decide(
             application.product.min_amt,
             application.product.max_amt,
             tuple(external_data.failed_sources),
+            revenue_client=application.revenue_amt,
+            debt_client=application.debt_amt,
+            revenue_source=revenue_source,
+            debt_source=debt_source,
+            revenue_declared_only=revenue_source is None and application.revenue_amt is not None,
         ),
         config,
     )

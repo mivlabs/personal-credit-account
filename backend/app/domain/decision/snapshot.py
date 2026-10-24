@@ -15,6 +15,7 @@ FACTOR_LABELS = {
     "DEBT_TO_ANNUAL_REVENUE": "Долговая нагрузка (долг к годовой выручке)",
     "OVERDUE_DAYS": "Просрочки в кредитной истории",
     "INDUSTRY": "Отрасль",
+    "DATA_MISMATCH": "Расхождение анкеты с источником",
 }
 
 INPUT_LABELS = {
@@ -40,6 +41,7 @@ RULE_TEXTS = {
     "OVERDUE": "В кредитной истории есть просрочка выше допустимой",
     "EXTERNAL_UNAVAILABLE": "Не удалось получить все данные из внешних источников: заявку проверит специалист",
     "MISSING_FINANCIALS": "Не хватает финансовых показателей: нужно, чтобы вы их указали",
+    "DATA_MISMATCH": "Данные в анкете расходятся с подтверждёнными данными: заявку проверит специалист",
     "LOW_SCORE": "Оценка заявки ниже порога отказа",
     "BORDERLINE_SCORE": "Оценка заявки в промежуточной зоне: решение примет специалист банка",
     "LIMIT_BELOW_MINIMUM": "Оценка достаточная, но доступная сумма ниже минимальной суммы продукта",
@@ -58,6 +60,8 @@ def factor_max_points(code: str, config: DecisionConfig) -> int:
     }.get(code)
     if bands is not None:
         return max(points for _, points in bands)
+    if code == "DATA_MISMATCH":
+        return 0
     return max(config.industry_points.values())
 
 
@@ -66,15 +70,17 @@ def _limit_block(result: DecisionResult, config: DecisionConfig, product_max: De
         return None
     revenue = Decimal(result.inputs["annualRevenue"]["value"])
     debt = Decimal(result.inputs["debtAmount"]["value"])
-    return {
-        "value": str(result.limit),
-        "formula": LIMIT_FORMULA,
-        "components": {
-            "revenueShare": str(revenue * config.revenue_limit_share),
-            "debtShare": str(debt * config.debt_limit_share),
-            "productMax": str(product_max),
-        },
+    components = {
+        "revenueShare": str(revenue * config.revenue_limit_share),
+        "debtShare": str(debt * config.debt_limit_share),
+        "productMax": str(product_max),
     }
+    formula = LIMIT_FORMULA
+    if result.inputs["annualRevenue"]["source"] == "CLIENT":
+        # выручка только со слов клиента: лимит урезается
+        components["clientDeclaredFactor"] = str(config.client_declared_limit_factor)
+        formula += " × коэффициент для выручки со слов клиента"
+    return {"value": str(result.limit), "formula": formula, "components": components}
 
 
 def build_auto_snapshot(
@@ -191,6 +197,11 @@ def explain(snapshot: dict | None, auto_snapshot: dict | None = None) -> dict | 
             "text": (
                 f"Доступная сумма {limit['value']} ₽: не больше {c['productMax']} ₽ (максимум продукта); "
                 f"{c['revenueShare']} ₽ от годовой выручки за вычетом {c['debtShare']} ₽ текущего долга"
+                + (
+                    f"; выручка указана вами и не подтверждена ФНС, поэтому лимит умножен на {c['clientDeclaredFactor']}"
+                    if "clientDeclaredFactor" in c
+                    else ""
+                )
             ),
             "components": c,
         }

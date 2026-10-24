@@ -17,3 +17,5 @@ key_rate_source: 'Банк России, решение Совета дирек�
 product_spreads: {WORKING_CAPITAL: '2.5', EQUIPMENT: '0.9', OVERDRAFT: '5.0'}
 risk_surcharge_pct: '1.0'
 low_risk_threshold: 85
+data_mismatch_pct: '20'
+client_declared_limit_factor: '0.5'

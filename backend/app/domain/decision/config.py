@@ -32,6 +32,10 @@ class DecisionConfig(BaseModel):
     product_spreads: dict[str, Decimal]
     risk_surcharge_pct: Decimal = Field(ge=0, le=100)
     low_risk_threshold: int = Field(ge=0, le=100)
+    # Расхождение анкеты с источником выше порога (в процентах) → ручная проверка
+    data_mismatch_pct: Decimal = Field(ge=0)
+    # Выручка только со слов клиента: лимит умножается на коэффициент
+    client_declared_limit_factor: Decimal = Field(gt=0, le=1)
 
     @model_validator(mode="after")
     def validate_policy(self):

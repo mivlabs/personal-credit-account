@@ -181,7 +181,7 @@ def test_manual_above_limit_requires_override(client, underwriter, flow, externa
     snap = screen(client, underwriter, app["id"])["decisions"][0]["snapshot"]
     assert snap["limitExceeded"] is True and snap["overrideLimit"] is True and snap["limitUnknown"] is False
     assert snap["autoLimit"] == "3000000.00"
-    audit = client.get(f"/api/v1/applications/{app["id"]}/audit", headers=underwriter).json()
+    audit = client.get(f"/api/v1/applications/{app['id']}/audit", headers=underwriter).json()
     assert "overrideLimit" in audit[-1]["comment"]
 
 
@@ -229,3 +229,35 @@ def test_migration_backfill_moves_auto_json_and_keeps_broken_json(db, flow):
     moved, kept = db.get(CreditDecision, good), db.get(CreditDecision, broken)
     assert moved.decision_snapshot == {"ruleCode": "OLD", "limit": "1"} and moved.comment_desc is None
     assert kept.decision_snapshot is None and kept.comment_desc == "{не json"
+
+
+def test_source_beats_client_value_and_mismatch_goes_to_manual_review(client, underwriter, flow, external):
+    """Регресс аудита: выручка 1 млрд в анкете не должна перекрывать ФНС и давать APPROVED на 10 млн."""
+    external(GOOD)  # ФНС: 12 млн
+    app = submit(flow, 10_000_000, revenueAmount=1_000_000_000)
+    assert app["status"] == "MANUAL_REVIEW"
+    d = screen(client, underwriter, app["id"])["decisions"][0]
+    assert d["snapshot"]["ruleCode"] == "DATA_MISMATCH"
+    assert [f["code"] for f in d["factors"]] == ["DATA_MISMATCH"]
+    revenue = d["snapshot"]["inputs"]["annualRevenue"]
+    assert revenue["source"] == "FNS" and revenue["value"] == "12000000" and "declaredValue" in revenue
+
+
+def test_client_value_within_threshold_is_ignored_in_favour_of_source(client, underwriter, flow, external):
+    external(GOOD)
+    app = submit(flow, 3_000_000, revenueAmount=13_000_000)  # +8%: не расхождение
+    assert app["status"] == "APPROVED"
+    snap = screen(client, underwriter, app["id"])["decisions"][0]["snapshot"]
+    assert snap["inputs"]["annualRevenue"]["value"] == "12000000"
+    assert snap["inputs"]["annualRevenue"]["source"] == "FNS"
+    assert snap["limit"]["value"] == "6000000.00"
+
+
+def test_revenue_declared_only_by_client_halves_the_limit(client, underwriter, flow, external):
+    external({**GOOD, "FNS": {"annualRevenue": None}})  # как client_info: ФНС выручки не знает
+    app = submit(flow, 4_000_000, revenueAmount=12_000_000, debtAmount=0)
+    assert app["status"] == "COUNTER_OFFER"
+    assert app["offer"]["amount"] == 3_000_000  # 6 млн × 0.5
+    snap = screen(client, underwriter, app["id"])["decisions"][0]["snapshot"]
+    assert snap["inputs"]["annualRevenue"]["source"] == "CLIENT"
+    assert snap["limit"]["components"]["clientDeclaredFactor"] == "0.5"

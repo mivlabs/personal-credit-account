@@ -134,3 +134,18 @@ def test_as_of_date_defaults_to_moscow_today(monkeypatch):
     finally:
         monkeypatch.undo()
         get_settings.cache_clear()
+
+
+def test_engine_mismatch_threshold_and_declared_factor():
+    c = load_decision_config()
+    base = replace(BASE, revenue_source=D("12000000"), debt_source=D("0"))
+    # ровно 20% — ещё не расхождение, строго больше — расхождение
+    assert evaluate(replace(base, revenue_client=D("14400000")), c).rule_code == "WITHIN_LIMIT"
+    r = evaluate(replace(base, revenue_client=D("14400001")), c)
+    assert r.outcome == O.MANUAL_REVIEW and r.rule_code == "DATA_MISMATCH"
+    assert [f.code for f in r.factors] == ["DATA_MISMATCH"] and r.score is None
+    # источник с нулём: любое ненулевое значение клиента — расхождение
+    zero = replace(base, debt_source=D("0"), debt_client=D("1"))
+    assert evaluate(zero, c).rule_code == "DATA_MISMATCH"
+    declared = evaluate(replace(BASE, revenue_declared_only=True), c)
+    assert declared.limit == D("3000000.00")
