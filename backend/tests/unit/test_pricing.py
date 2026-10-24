@@ -29,7 +29,7 @@ def test_rate_from_has_no_surcharge():
 
 def test_key_rate_is_cbr_not_demo():
     c = load_decision_config()
-    assert c.key_rate_pct == D("14.0") and c.key_rate_date == date(2026, 9, 11)
+    assert c.key_rate_pct == D("14.0") and c.key_rate_date == date(2026, 10, 23)
     assert "Банк России" in c.key_rate_source
 
 

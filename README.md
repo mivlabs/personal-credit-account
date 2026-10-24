@@ -158,7 +158,7 @@ uv run python -m app.scripts.export_state_machine  # docs/state-machine.md
 Все переменные имеют значения по умолчанию, `.env` не обязателен. Полный список с описанием: [`.env.example`](.env.example).
 Главное: `JWT_SECRET` (пусто = случайный секрет на volume `jwtdata`), `DEMO_MODE` (по умолчанию `true`: `signHint` с кодом подписи в ответе принятия оффера; в `false` подсказки нет), `DEMO_SIGN_CODE`, `CORS_ORIGINS`, `MOCKS_BASE_URL`. Паузы конвейера отключены; `PIPELINE_STEP_DELAY_SECONDS` оставлен только для совместимости окружения.
 
-Ставка по кредиту = ключевая ставка ЦБ + спред продукта + риск-надбавка. Ключевая ставка в [`policy.yaml`](backend/app/domain/decision/policy.yaml): 14,0% на 2026-09-11 (решение Совета директоров Банка России). **Значение нужно сверить с cbr.ru на дату проверки** и при необходимости переопределить переменными `KEY_RATE_PCT` и `KEY_RATE_DATE` (пример: `KEY_RATE_PCT=15.5 KEY_RATE_DATE=2026-10-30 docker compose up --build`).
+Ставка по кредиту = ключевая ставка ЦБ + спред продукта + риск-надбавка. Ключевая ставка в [`policy.yaml`](backend/app/domain/decision/policy.yaml): 14,0% на 2026-10-23 (решение Совета директоров Банка России). **Значение нужно сверить с cbr.ru на дату проверки** и при необходимости переопределить переменными `KEY_RATE_PCT` и `KEY_RATE_DATE` (пример: `KEY_RATE_PCT=15.5 KEY_RATE_DATE=2026-10-30 docker compose up --build`).
 
 ### Сроки, отзыв и подбор продукта
 
