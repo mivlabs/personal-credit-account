@@ -10,6 +10,10 @@ export function StatusTag({status,name}: {status: string, name: string}) { retur
 export function KV({items,className}: {items: {key?: string, label: ReactNode, value: ReactNode, note?: ReactNode}[], className?: string}) {
  return <dl className={'kv'+(className?' '+className:'')}>{items.map((i,n)=><div className="kv-row" key={i.key ?? n}><dt className="kv-label">{i.label}</dt><dd className="kv-value">{i.value}{i.note && <span className="kv-note">{i.note}</span>}</dd></div>)}</dl>;
 }
+// Знак кабинета: графитовый квадрат и лаймовая дуга прогресса с точкой, без привязки к бренду банка.
+export function Logo({size=40}: {size?: number}) {
+ return <svg className="brand-mark" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#141414"/><path d="M28.5 11.5A12 12 0 1 0 31.6 25" fill="none" stroke="#D4F542" strokeWidth="4" strokeLinecap="round"/><circle cx="29" cy="12.5" r="3" fill="#D4F542"/></svg>;
+}
 export function Figure({label,value,unit}: {label: ReactNode, value: ReactNode, unit?: ReactNode}) { return <div className="figure"><div className="figure-label">{label}</div><div className="figure-value">{value}{unit && <small>{unit}</small>}</div></div>; }
 export function PageHeading({eyebrow,title,lead,extra}: {eyebrow?: ReactNode, title: ReactNode, lead?: ReactNode, extra?: ReactNode}) {
  const body = <div>{eyebrow && <span className="eyebrow">{eyebrow}</span>}<Title>{title}</Title>{lead && <p className="lead">{lead}</p>}</div>;

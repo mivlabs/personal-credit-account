@@ -1,4 +1,4 @@
-:root{--bg:#F3F3F1;--surface:#fff;--ink:#141414;--ink-2:#5C5C58;--ink-3:#8A8A85;--line:#DEDED9;--line-2:#ECECE8;--lime:#D4F542;--lime-hover:#E2FF5C;--lime-soft:#F2FBC6;--red:#EF3124;--display:'Unbounded Variable',sans-serif;--body:'Manrope Variable',Inter,Arial,sans-serif}
+:root{--bg:#F3F3F1;--surface:#fff;--ink:#141414;--ink-2:#5C5C58;--ink-3:#8A8A85;--line:#DEDED9;--line-2:#ECECE8;--lime:#D4F542;--lime-hover:#E2FF5C;--lime-soft:#F2FBC6;--display:'Unbounded Variable',sans-serif;--body:'Manrope Variable',Inter,Arial,sans-serif}
 *{box-sizing:border-box}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-feature-settings:"tnum" 1,"cv11" 1}
@@ -25,7 +25,7 @@ h4.ant-typography{font-size:17px!important;font-weight:700}
 .topbar{position:sticky;top:0;z-index:20;height:72px;line-height:normal;display:flex;align-items:center;gap:24px;padding:0 32px;background:rgba(243,243,241,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-family:var(--display);font-weight:600;font-size:15px;line-height:1.1;letter-spacing:-.01em}
 .brand small{display:block;font-family:var(--body);font-weight:500;font-size:12px;color:var(--ink-2);margin-top:3px;letter-spacing:0}
-.brand-mark{flex:none;width:40px;height:40px;border-radius:12px;background:var(--red);color:#fff;font-family:var(--display);font-weight:700;font-size:22px;display:inline-flex;align-items:center;justify-content:center}
+.brand-mark{flex:none;display:block}
 .nav{display:flex;gap:6px;margin-left:8px}
 .nav a{padding:9px 16px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600;font-size:14px;border:1px solid transparent;white-space:nowrap}
 .nav a:hover{background:#fff;border-color:var(--line)}
@@ -132,7 +132,7 @@ h4.ant-typography{font-size:17px!important;font-weight:700}
 
 /* вход */
 .login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,440px);gap:6vw;align-items:center;max-width:1240px;margin:auto;padding:48px 32px}
-.login-story .brand-mark{display:inline-flex;margin-bottom:36px}
+.login-story .brand-mark{margin-bottom:36px}
 .login-story h1{font-family:var(--display);font-weight:700;font-size:52px;line-height:1.05;letter-spacing:-.03em;margin:22px 0 20px}
 .login-story .lead{font-size:17px;color:var(--ink-2);max-width:520px;line-height:1.55;margin:0}
 .hl{background:var(--lime);padding:0 .12em;border-radius:10px;-webkit-box-decoration-break:clone;box-decoration-break:clone}

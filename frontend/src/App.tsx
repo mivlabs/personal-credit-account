@@ -3,7 +3,7 @@ import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-route
 import { Button, Card, Form, Input, Layout, Spin, Typography } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
 import { api, type Schemas, type User } from './api';
-import { Failure } from './shared';
+import { Failure, Logo } from './shared';
 import { Products, Applications } from './Catalog';
 import ApplicationPage from './ApplicationPage';
 import Bank from './Bank';
@@ -20,7 +20,7 @@ export default function App() {
  const links=bank?[{to:'/bank',label:'Рабочая очередь'}]:[{to:'/products',label:'Кредитные продукты'},{to:'/applications',label:'Мои заявки'}];
  return <Layout className="app-layout">
   <Layout.Header className="topbar">
-   <Link className="brand" to={bank?'/bank':'/products'}><span className="brand-mark">А</span><span>Кредитный кабинет<small>для бизнеса</small></span></Link>
+   <Link className="brand" to={bank?'/bank':'/products'}><Logo/><span>Кредитный кабинет<small>для бизнеса</small></span></Link>
    <nav className="nav" aria-label="Разделы">{links.map(l=><NavLink key={l.to} to={l.to} className={({isActive})=>isActive?'active':undefined}>{l.label}</NavLink>)}</nav>
    <div className="topbar-right"><span className="tag-pill lime">Демо · синтетические данные</span><span className="user-name">{user.name}</span><Button aria-label="Выйти" icon={<LogoutOutlined/>} onClick={logout}>Выйти</Button></div>
   </Layout.Header>
@@ -33,7 +33,7 @@ function Login({onLogin,error:initialError}:{onLogin:(u:User)=>void,error:unknow
  const submit=async(body:Schemas['LoginRequest'])=>{setBusy(true);setError(undefined);try{const r=await api<Schemas['LoginResponse']>('/auth/login',body);sessionStorage.setItem('creditToken',r.accessToken);onLogin(r.user);}catch(e){setError(e);}finally{setBusy(false);}};
  return <div className="login">
   <div className="login-story">
-   <span className="brand-mark">А</span>
+   <Logo size={48}/>
    <span className="eyebrow">Кредитный кабинет для предпринимателей</span>
    <h1>Кредит для бизнеса <span className="hl">без звонков</span> и повторных анкет</h1>
    <p className="lead">Выберите продукт под задачу, отправьте заявку и следите за решением в одном кабинете. Данные компании банк уже знает.</p>
