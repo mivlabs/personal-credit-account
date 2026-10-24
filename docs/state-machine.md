@@ -34,7 +34,6 @@
 | `CHECKING` | `EXTERNAL_CHECK` | Система | Данных достаточно |
 | `NEEDS_INFO` | `CHECKING` | Клиент | Клиент дозаполнил запрошенные поля |
 | `EXTERNAL_CHECK` | `SCORING` | Система | Внешние сервисы ответили |
-| `EXTERNAL_CHECK` | `MANUAL_REVIEW` | Система | Внешний сервис не ответил за таймаут |
 | `SCORING` | `APPROVED` | Система | Балл не ниже порога одобрения, сумма в пределах лимита |
 | `SCORING` | `COUNTER_OFFER` | Система | Балл не ниже порога одобрения, запрошенная сумма выше лимита |
 | `SCORING` | `NEEDS_INFO` | Система | Для оценки не хватает данных |
@@ -62,7 +61,6 @@ stateDiagram-v2
     CHECKING --> EXTERNAL_CHECK: Система
     NEEDS_INFO --> CHECKING: Клиент
     EXTERNAL_CHECK --> SCORING: Система
-    EXTERNAL_CHECK --> MANUAL_REVIEW: Система
     SCORING --> APPROVED: Система
     SCORING --> COUNTER_OFFER: Система
     SCORING --> NEEDS_INFO: Система

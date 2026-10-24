@@ -142,3 +142,8 @@ def test_state_machine_doc_matches_code():
     assert DEFAULT_OUTPUT.read_text(encoding="utf-8") == render_state_machine_md(), (
         "docs/state-machine.md разошёлся с кодом: uv run python -m app.scripts.export_state_machine"
     )
+
+
+def test_external_check_always_goes_through_scoring():
+    assert targets_from(S.EXTERNAL_CHECK) == [S.SCORING]
+    assert find_transition(S.EXTERNAL_CHECK, S.MANUAL_REVIEW) is None

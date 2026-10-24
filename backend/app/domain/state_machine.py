@@ -50,7 +50,6 @@ TRANSITIONS: tuple[Transition, ...] = (
     Transition(S.CHECKING, S.EXTERNAL_CHECK, Actor.SYSTEM, "Данных достаточно"),
     Transition(S.NEEDS_INFO, S.CHECKING, Actor.CLIENT, "Клиент дозаполнил запрошенные поля"),
     Transition(S.EXTERNAL_CHECK, S.SCORING, Actor.SYSTEM, "Внешние сервисы ответили"),
-    Transition(S.EXTERNAL_CHECK, S.MANUAL_REVIEW, Actor.SYSTEM, "Внешний сервис не ответил за таймаут"),
     Transition(S.SCORING, S.APPROVED, Actor.SYSTEM, "Балл не ниже порога одобрения, сумма в пределах лимита"),
     Transition(
         S.SCORING,
