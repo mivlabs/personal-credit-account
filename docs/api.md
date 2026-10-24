@@ -24,3 +24,9 @@
 - `POST /applications/{id}/withdraw`, тело `{reason?}`, необязательный `Idempotency-Key`: отзыв из `DRAFT`, `NEEDS_INFO`, `MANUAL_REVIEW` → `WITHDRAWN`. Для `APPROVED`/`COUNTER_OFFER` остаётся `offer/decline`. Действие `WITHDRAW` в `availableActions`. Отозванные заявки не попадают в очередь андеррайтера по умолчанию.
 - Сроки: `offer.validUntil` (`OFFER_TTL_DAYS`, 30) и `infoRequests[].dueAt` (`INFO_REQUEST_TTL_DAYS`, 14); у старых строк `null`. Если срок истёк, `offer/accept`, `offer/decline`, `missing-info` и `sign` переводят заявку в `EXPIRED` и возвращают 409 с кодом `EXPIRED`; переход сохраняется. Массовое закрытие: `python -m app.scripts.expire_stale`.
 - `POST /products/recommendations`, тело `{purposeCategory, amount?, termMonths?}`, роль клиента. Ответ: `{purposeCategory, purposeLabel, rulesVersion, items[{product, matchScore 0–100, recommended, reasons[], rateFrom}]}`, по убыванию `matchScore`. Категории: `WORKING_CAPITAL_TOPUP`, `GOODS_PURCHASE`, `EQUIPMENT_PURCHASE`, `CASH_GAP`, `SEASONAL`, `EXPANSION`, `OTHER`.
+
+Сессия 4. Регистрация по ИНН:
+
+- `POST /auth/register` без авторизации, тело `{login, password, inn}`; `201` и тело как у `/auth/login` (`accessToken`, `tokenType`, `expiresIn`, `user`). Логин 3–32 символа `a-z0-9_.-`, пароль не короче 8, ИНН — 10 или 12 цифр с верными контрольными числами ФНС (seed-ИНН пропускаются явным списком).
+- `422 VALIDATION_ERROR` с `errors[]` по полям `login`, `password`, `inn` (в том числе «Неверная контрольная сумма ИНН»); `409 LOGIN_TAKEN` (поле `login`); `409 INN_TAKEN` (поле `inn`); `503 EGRUL_UNAVAILABLE` (компания не создана); `429 TOO_MANY_REQUESTS` с `Retry-After`.
+- Новые значения `ErrorCode`: `LOGIN_TAKEN`, `INN_TAKEN`, `EGRUL_UNAVAILABLE`.

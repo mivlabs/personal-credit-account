@@ -8,6 +8,12 @@ Content-Type: application/json
 
 {"login":"client_fast","password":"demo1234"}
 
+### Register by INN (ответ как у входа; сценарий задаёт 9-я цифра ИНН)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{"login":"my_company","password":"secret123","inn":"7702000011"}
+
 ### Products
 GET {{base}}/products
 Authorization: Bearer {{token}}
