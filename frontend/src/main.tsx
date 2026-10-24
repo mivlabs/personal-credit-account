@@ -4,5 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { App as AntApp, ConfigProvider } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import App from './App';
+import { theme } from './theme';
+import './fonts.css';
 import './style.css';
-createRoot(document.getElementById('root')!).render(<React.StrictMode><ConfigProvider locale={ruRU} theme={{token:{colorPrimary:'#EF3124',borderRadius:12,fontFamily:'Inter, Arial, sans-serif'}}}><AntApp><BrowserRouter><App/></BrowserRouter></AntApp></ConfigProvider></React.StrictMode>);
+createRoot(document.getElementById('root')!).render(<React.StrictMode><ConfigProvider locale={ruRU} theme={theme}><AntApp><BrowserRouter><App/></BrowserRouter></AntApp></ConfigProvider></React.StrictMode>);

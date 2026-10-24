@@ -275,3 +275,10 @@ Reproduce with backend/.venv/Scripts/python.exe scripts/export-notices.py after 
 Container infrastructure: PostgreSQL 16, WireMock 3.13.2, Nginx, Python, Node.js, uv. Container OS dependencies have their own notices in the images and are outside this package metadata inventory. Check upstream image notices before redistribution.
 
 EGRUL, FNS and BKI are simulated locally in WireMock; no external financial data, model weights or real bank integrations are distributed.
+
+## Vendored font files (not npm packages)
+
+| Asset | Version | Declared license |
+|---|---|---|
+| Manrope Variable (frontend/src/fonts/manrope-*.woff2, from @fontsource-variable/manrope) | 5.3.0 | OFL-1.1 |
+| Unbounded Variable (frontend/src/fonts/unbounded-*.woff2, from @fontsource-variable/unbounded) | 5.3.0 | OFL-1.1 |
