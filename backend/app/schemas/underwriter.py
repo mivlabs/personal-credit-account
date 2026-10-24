@@ -83,6 +83,9 @@ class DecisionDetailOut(ApiModel):
         default=None, description="ФИО андеррайтера; пусто для автоматического решения"
     )
     created_at: AwareDatetime
+    snapshot: dict[str, Any] | None = Field(
+        default=None, description="Структурированный снимок решения: входы, факторы, лимит, ставка"
+    )
     factors: list[DecisionFactorOut] = Field(default_factory=list)
 
 
@@ -94,6 +97,10 @@ class UnderwriterApplicationOut(ApiModel):
     external_checks: list[ExternalCheckOut]
     decisions: list[DecisionDetailOut] = Field(description="От новых к старым")
     queue_reason: str | None = Field(default=None, description="Почему заявка попала в очередь")
+    auto_limit: Money | None = Field(
+        default=None,
+        description="Расчётный лимит из последнего автоматического снимка; null, если лимита нет",
+    )
 
 
 class InfoRequestInput(ApiModel):
@@ -120,6 +127,10 @@ class DecisionRequest(ApiModel):
         default=None, gt=0, description="Срок оффера; по умолчанию как в заявке"
     )
     info_request: InfoRequestInput | None = Field(default=None, description="Обязателен для NEEDS_INFO")
+    override_limit: bool = Field(
+        default=False,
+        description="Подтверждение решения выше расчётного лимита (APPROVED на запрошенную сумму или COUNTER_OFFER выше лимита)",
+    )
     # Кросс-полевые правила (offerAmount для COUNTER_OFFER, infoRequest для NEEDS_INFO) проверяет
     # сервис решения, чтобы вернуть 422 с ошибкой по конкретному полю.
 

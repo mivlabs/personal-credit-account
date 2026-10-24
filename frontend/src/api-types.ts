@@ -547,6 +547,8 @@ export interface components {
             openInfoRequests: components["schemas"]["InfoRequestOut"][];
             /** @description Последнее решение */
             decision: components["schemas"]["ClientDecisionOut"] | null;
+            /** @description Как принято последнее решение */
+            decisionExplanation: components["schemas"]["DecisionExplanationOut"] | null;
             /** @description Актуальный оффер */
             offer: components["schemas"]["OfferOut"] | null;
         };
@@ -761,8 +763,43 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+            /**
+             * Snapshot
+             * @description Структурированный снимок решения: входы, факторы, лимит, ставка
+             */
+            snapshot: {
+                [key: string]: unknown;
+            } | null;
             /** Factors */
             factors: components["schemas"]["DecisionFactorOut"][];
+        };
+        /**
+         * DecisionExplanationOut
+         * @description Как принято решение: человеческая версия снимка. Без внутреннего комментария андеррайтера.
+         */
+        DecisionExplanationOut: {
+            /** Rulecode */
+            ruleCode: string;
+            /**
+             * Ruletext
+             * @description Сработавшее правило простым языком
+             */
+            ruleText: string;
+            /** Decidedbyspecialist */
+            decidedBySpecialist: boolean;
+            /** Score */
+            score: number | null;
+            thresholds: components["schemas"]["DecisionThresholds"] | null;
+            /** Inputs */
+            inputs: components["schemas"]["ExplainedInput"][];
+            /** Factors */
+            factors: components["schemas"]["ExplainedFactor"][];
+            limit: components["schemas"]["ExplainedLimit"] | null;
+            rate: components["schemas"]["RateBreakdownOut"] | null;
+            /** Asofdate */
+            asOfDate: string;
+            /** Policyversion */
+            policyVersion: string;
         };
         /** DecisionFactorOut */
         DecisionFactorOut: {
@@ -818,6 +855,19 @@ export interface components {
             offerTermMonths?: number | null;
             /** @description Обязателен для NEEDS_INFO */
             infoRequest?: components["schemas"]["InfoRequestInput"] | null;
+            /**
+             * Overridelimit
+             * @description Подтверждение решения выше расчётного лимита (APPROVED на запрошенную сумму или COUNTER_OFFER выше лимита)
+             * @default false
+             */
+            overrideLimit: boolean;
+        };
+        /** DecisionThresholds */
+        DecisionThresholds: {
+            /** Approve */
+            approve: number;
+            /** Reject */
+            reject: number;
         };
         /**
          * DecisionType
@@ -829,6 +879,70 @@ export interface components {
          * @enum {string}
          */
         ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
+        /** ExplainedFactor */
+        ExplainedFactor: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string | null;
+            /** Points */
+            points: number;
+            /** Maxpoints */
+            maxPoints: number;
+            /**
+             * Impact
+             * @description STRENGTH или WEAKNESS
+             */
+            impact: string;
+            /**
+             * Impactlabel
+             * @description «сильная сторона» или «снижает оценку»
+             */
+            impactLabel: string;
+            /**
+             * Explanation
+             * @default
+             */
+            explanation: string;
+        };
+        /** ExplainedInput */
+        ExplainedInput: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string;
+            /**
+             * Source
+             * @description CLIENT, EGRUL, FNS или BKI
+             */
+            source: string;
+            /**
+             * Sourcename
+             * @description Источник простым языком
+             */
+            sourceName: string;
+        };
+        /** ExplainedLimit */
+        ExplainedLimit: {
+            /**
+             * Value
+             * @description Доступная сумма, ₽
+             */
+            value: string;
+            /**
+             * Text
+             * @description Как рассчитана доступная сумма
+             */
+            text: string;
+            /** Components */
+            components: {
+                [key: string]: string;
+            };
+        };
         /** ExternalCheckOut */
         ExternalCheckOut: {
             /** Id */
@@ -1417,6 +1531,11 @@ export interface components {
              * @description Почему заявка попала в очередь
              */
             queueReason: string | null;
+            /**
+             * Autolimit
+             * @description Расчётный лимит из последнего автоматического снимка; null, если лимита нет
+             */
+            autoLimit: number | null;
         };
         /** UserOut */
         UserOut: {

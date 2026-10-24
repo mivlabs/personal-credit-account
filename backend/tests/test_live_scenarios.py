@@ -32,7 +32,7 @@ def test_real_wiremock_five_outcomes(client, underwriter, db, login, amount, exp
     assert a["status"] == expected
     screen = client.get(f"/api/v1/underwriter/applications/{a['id']}", headers=underwriter).json()
     assert len(screen["externalChecks"]) >= 3
-    assert screen["decisions"][0]["comment"] and "ruleCode" in screen["decisions"][0]["comment"]
+    assert screen["decisions"][0]["snapshot"]["ruleCode"]
     if expected == "NEEDS_INFO":
         r = client.patch(
             f"/api/v1/applications/{a['id']}/missing-info", headers=headers, json={"revenueAmount": 12000000}

@@ -7,11 +7,21 @@
 import json
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import CreditDecision, DecisionFactor, InfoRequest, LoanApplication, LoanOffer
+from app.db.models import (
+    CreditDecision,
+    DecisionFactor,
+    ExternalCheck,
+    InfoRequest,
+    LoanApplication,
+    LoanOffer,
+)
+from app.domain.clock import as_of_date
 from app.domain.decision.config import load_decision_config
 from app.domain.decision.engine import DecisionResult, FactorResult, InfoRequestSpec
+from app.domain.decision.snapshot import build_auto_snapshot
 from app.domain.enums import (
     ApplicationStatus,
     DecisionOutcome,
@@ -40,6 +50,7 @@ def record_decision(
     info_request: InfoRequestSpec | None = None,
     audit_comment: str | None = None,
     offer_rate: Decimal | None = None,
+    snapshot: dict | None = None,
 ) -> CreditDecision:
     decision = CreditDecision(
         application_id=application.application_id,
@@ -49,6 +60,7 @@ def record_decision(
         score_qnt=score,
         reason_desc=reason,
         comment_desc=comment,
+        decision_snapshot=snapshot,
     )
     session.add(decision)
     session.flush()
@@ -108,10 +120,44 @@ def record_decision(
     return decision
 
 
+def _external_checks_block(session: Session, application: LoanApplication) -> list[dict]:
+    """Последняя попытка по каждому источнику в рамках текущей проверки."""
+    latest: dict[str, ExternalCheck] = {}
+    for row in session.scalars(
+        select(ExternalCheck)
+        .where(ExternalCheck.application_id == application.application_id)
+        .order_by(ExternalCheck.check_id)
+    ):
+        latest[row.source_code] = row
+    return [
+        {
+            "source": row.source_code,
+            "status": row.check_status_code,
+            "requestedAt": row.request_dttm.isoformat() if row.request_dttm else None,
+            "respondedAt": row.response_dttm.isoformat() if row.response_dttm else None,
+        }
+        for row in latest.values()
+    ]
+
+
 def record_auto_decision(
     session: Session, application: LoanApplication, result: DecisionResult
 ) -> CreditDecision:
     config = load_decision_config()
+    product_code = application.product.product_code
+    rate = (
+        compute_rate(product_code, result.score, config)
+        if result.outcome in (DecisionOutcome.APPROVED, DecisionOutcome.COUNTER_OFFER)
+        else None
+    )
+    snapshot = build_auto_snapshot(
+        result=result,
+        config=config,
+        as_of=as_of_date(),
+        product_max=application.product.max_amt,
+        external_checks=_external_checks_block(session, application),
+        rate=rate,
+    )
     return record_decision(
         session,
         application,
@@ -121,27 +167,9 @@ def record_auto_decision(
         score=result.score,
         factors=result.factors,
         reason=result.reason,
-        comment=json.dumps(
-            {
-                "rules": config.model_dump(mode="json"),
-                "externalData": session.info.get("decision_external_snapshot", {}),
-                "provenance": {
-                    "annualRevenue": "client" if application.revenue_amt is not None else "FNS",
-                    "debtAmount": "client" if application.debt_amt is not None else "BKI",
-                },
-                "ruleCode": result.rule_code,
-                "limit": str(result.limit) if result.limit is not None else None,
-                "inputs": {
-                    "requestedAmount": str(application.requested_amt),
-                    "annualRevenue": str(application.revenue_amt)
-                    if application.revenue_amt is not None
-                    else None,
-                    "debtAmount": str(application.debt_amt) if application.debt_amt is not None else None,
-                },
-            },
-            ensure_ascii=False,
-        ),
-        offer_rate=compute_rate(application.product.product_code, result.score, config).total,
+        comment=None,
+        snapshot=snapshot,
+        offer_rate=rate.total if rate else None,
         offer_amount=result.offer_amt,
         info_request=result.info_request,
         audit_comment=result.note or result.reason,

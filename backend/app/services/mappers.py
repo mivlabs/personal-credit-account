@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import replace
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import desc, select
@@ -17,6 +18,7 @@ from app.db.models import (
     LoanOffer,
 )
 from app.domain.decision.config import load_decision_config
+from app.domain.decision.snapshot import explain
 from app.domain.enums import (
     STATUS_NAMES,
     ApplicationField,
@@ -29,6 +31,7 @@ from app.schemas.application import (
     ApplicationOut,
     ApplicationSummary,
     ClientDecisionOut,
+    DecisionExplanationOut,
     InfoRequestOut,
     OfferOut,
     StatusHistoryItem,
@@ -138,13 +141,29 @@ def offer_breakdown(total: Decimal, product_code: str) -> RateBreakdownOut | Non
     return rate_breakdown_out(replace(base, risk_surcharge=surcharge, total=total))
 
 
-def offer_out(o: LoanOffer, product_code: str = "WORKING_CAPITAL") -> OfferOut:
+def breakdown_from_snapshot(rate: dict) -> RateBreakdownOut:
+    return RateBreakdownOut(
+        key_rate=Decimal(rate["keyRate"]),
+        key_rate_date=date.fromisoformat(rate["keyRateDate"]),
+        key_rate_source=rate["keyRateSource"],
+        product_spread=Decimal(rate["productSpread"]),
+        risk_surcharge=Decimal(rate["riskSurcharge"]),
+        total=Decimal(rate["total"]),
+    )
+
+
+def offer_out(o: LoanOffer, product_code: str = "WORKING_CAPITAL", snapshot: dict | None = None) -> OfferOut:
     return OfferOut(
         id=o.offer_id,
         amount=o.offer_amt,
         term_months=o.term_qnt,
         rate=o.rate_nval,
-        rate_breakdown=offer_breakdown(o.rate_nval, product_code),
+        # Разложение берём из снимка решения, чтобы оно не зависело от текущего конфига
+        rate_breakdown=(
+            breakdown_from_snapshot(snapshot["rate"])
+            if snapshot and snapshot.get("rate")
+            else offer_breakdown(o.rate_nval, product_code)
+        ),
         monthly_payment=None if product_code == "OVERDRAFT" else o.monthly_payment_amt,
         status=o.offer_status_code,
         accepted_at=o.accept_dttm,
@@ -194,6 +213,29 @@ def open_info_requests(session: Session, application_id: int) -> list[InfoReques
     )
 
 
+def latest_auto_snapshot(session: Session, application_id: int) -> dict | None:
+    return session.scalar(
+        select(CreditDecision.decision_snapshot)
+        .where(
+            CreditDecision.application_id == application_id,
+            CreditDecision.decision_type_code == "AUTO",
+            CreditDecision.decision_snapshot.is_not(None),
+        )
+        .order_by(desc(CreditDecision.decision_id))
+        .limit(1)
+    )
+
+
+def decision_explanation(session: Session, decision: CreditDecision) -> DecisionExplanationOut | None:
+    auto = (
+        latest_auto_snapshot(session, decision.application_id)
+        if decision.decision_type_code == "MANUAL"
+        else None
+    )
+    data = explain(decision.decision_snapshot, auto)
+    return DecisionExplanationOut.model_validate(data) if data else None
+
+
 def application_out(session: Session, app: LoanApplication, role: str = "CLIENT") -> ApplicationOut:
     # Триггеры БД и коммиты меняют строку «за спиной» объекта: перечитываем актуальное состояние
     session.refresh(app)
@@ -201,6 +243,8 @@ def application_out(session: Session, app: LoanApplication, role: str = "CLIENT"
 
     decision = latest_decision(session, app.application_id) if status in _DECISION_VISIBLE else None
     offer = latest_offer(session, app.application_id)
+    offer_decision = session.get(CreditDecision, offer.decision_id) if offer else None
+    explanation = decision_explanation(session, decision) if decision and decision.decision_snapshot else None
 
     actions = (
         {
@@ -238,7 +282,10 @@ def application_out(session: Session, app: LoanApplication, role: str = "CLIENT"
             if decision
             else None
         ),
-        offer=offer_out(offer, app.product.product_code) if offer else None,
+        decision_explanation=explanation,
+        offer=(
+            offer_out(offer, app.product.product_code, offer_decision.decision_snapshot) if offer else None
+        ),
     )
 
 

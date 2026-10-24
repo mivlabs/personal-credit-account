@@ -1,6 +1,7 @@
 """Кредитное решение, факторы скоринга и оффер."""
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import mapped_column, relationship
 
 from app.db.base import (
@@ -40,6 +41,7 @@ class CreditDecision(Base):
     score_qnt: Mapped[Quantity | None]
     reason_desc: Mapped[Description]
     comment_desc: Mapped[Description | None]
+    decision_snapshot: Mapped[dict | None] = mapped_column(JSONB)
     create_dttm: Mapped[DateTime_] = create_dttm_column()
 
     factors: Mapped[list["DecisionFactor"]] = relationship(order_by="DecisionFactor.factor_id")

@@ -1236,6 +1236,11 @@ components:
           - $ref: '#/components/schemas/ClientDecisionOut'
           - type: 'null'
           description: Последнее решение
+        decisionExplanation:
+          anyOf:
+          - $ref: '#/components/schemas/DecisionExplanationOut'
+          - type: 'null'
+          description: Как принято последнее решение
         offer:
           anyOf:
           - $ref: '#/components/schemas/OfferOut'
@@ -1261,6 +1266,7 @@ components:
       - history
       - openInfoRequests
       - decision
+      - decisionExplanation
       - offer
       title: ApplicationOut
       examples:
@@ -1612,6 +1618,13 @@ components:
           type: string
           format: date-time
           title: Createdat
+        snapshot:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Snapshot
+          description: 'Структурированный снимок решения: входы, факторы, лимит, ставка'
         factors:
           items:
             $ref: '#/components/schemas/DecisionFactorOut'
@@ -1627,8 +1640,69 @@ components:
       - comment
       - decidedBy
       - createdAt
+      - snapshot
       - factors
       title: DecisionDetailOut
+    DecisionExplanationOut:
+      properties:
+        ruleCode:
+          type: string
+          title: Rulecode
+        ruleText:
+          type: string
+          title: Ruletext
+          description: Сработавшее правило простым языком
+        decidedBySpecialist:
+          type: boolean
+          title: Decidedbyspecialist
+        score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score
+        thresholds:
+          anyOf:
+          - $ref: '#/components/schemas/DecisionThresholds'
+          - type: 'null'
+        inputs:
+          items:
+            $ref: '#/components/schemas/ExplainedInput'
+          type: array
+          title: Inputs
+        factors:
+          items:
+            $ref: '#/components/schemas/ExplainedFactor'
+          type: array
+          title: Factors
+        limit:
+          anyOf:
+          - $ref: '#/components/schemas/ExplainedLimit'
+          - type: 'null'
+        rate:
+          anyOf:
+          - $ref: '#/components/schemas/RateBreakdownOut'
+          - type: 'null'
+        asOfDate:
+          type: string
+          title: Asofdate
+        policyVersion:
+          type: string
+          title: Policyversion
+      type: object
+      required:
+      - ruleCode
+      - ruleText
+      - decidedBySpecialist
+      - score
+      - thresholds
+      - inputs
+      - factors
+      - limit
+      - rate
+      - asOfDate
+      - policyVersion
+      title: DecisionExplanationOut
+      description: 'Как принято решение: человеческая версия снимка. Без внутреннего комментария андеррайтера.'
     DecisionFactorOut:
       properties:
         explanation:
@@ -1705,11 +1779,30 @@ components:
           - $ref: '#/components/schemas/InfoRequestInput'
           - type: 'null'
           description: Обязателен для NEEDS_INFO
+        overrideLimit:
+          type: boolean
+          title: Overridelimit
+          description: Подтверждение решения выше расчётного лимита (APPROVED на запрошенную сумму или COUNTER_OFFER выше
+            лимита)
+          default: false
       type: object
       required:
       - outcome
       - comment
       title: DecisionRequest
+    DecisionThresholds:
+      properties:
+        approve:
+          type: integer
+          title: Approve
+        reject:
+          type: integer
+          title: Reject
+      type: object
+      required:
+      - approve
+      - reject
+      title: DecisionThresholds
     DecisionType:
       type: string
       enum:
@@ -1730,6 +1823,96 @@ components:
       - SERVICE_UNAVAILABLE
       - INTERNAL_ERROR
       title: ErrorCode
+    ExplainedFactor:
+      properties:
+        code:
+          type: string
+          title: Code
+        label:
+          type: string
+          title: Label
+        value:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Value
+        points:
+          type: integer
+          title: Points
+        maxPoints:
+          type: integer
+          title: Maxpoints
+        impact:
+          type: string
+          title: Impact
+          description: STRENGTH или WEAKNESS
+        impactLabel:
+          type: string
+          title: Impactlabel
+          description: «сильная сторона» или «снижает оценку»
+        explanation:
+          type: string
+          title: Explanation
+          default: ''
+      type: object
+      required:
+      - code
+      - label
+      - value
+      - points
+      - maxPoints
+      - impact
+      - impactLabel
+      - explanation
+      title: ExplainedFactor
+    ExplainedInput:
+      properties:
+        code:
+          type: string
+          title: Code
+        label:
+          type: string
+          title: Label
+        value:
+          type: string
+          title: Value
+        source:
+          type: string
+          title: Source
+          description: CLIENT, EGRUL, FNS или BKI
+        sourceName:
+          type: string
+          title: Sourcename
+          description: Источник простым языком
+      type: object
+      required:
+      - code
+      - label
+      - value
+      - source
+      - sourceName
+      title: ExplainedInput
+    ExplainedLimit:
+      properties:
+        value:
+          type: string
+          title: Value
+          description: Доступная сумма, ₽
+        text:
+          type: string
+          title: Text
+          description: Как рассчитана доступная сумма
+        components:
+          additionalProperties:
+            type: string
+          type: object
+          title: Components
+      type: object
+      required:
+      - value
+      - text
+      - components
+      title: ExplainedLimit
     ExternalCheckOut:
       properties:
         id:
@@ -2509,6 +2692,15 @@ components:
           - type: 'null'
           title: Queuereason
           description: Почему заявка попала в очередь
+        autoLimit:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Autolimit
+          description: Расчётный лимит из последнего автоматического снимка; null, если лимита нет
       type: object
       required:
       - application
@@ -2516,6 +2708,7 @@ components:
       - externalChecks
       - decisions
       - queueReason
+      - autoLimit
       title: UnderwriterApplicationOut
       description: 'Всё на одном экране: анкета, внешние данные, балл и факторы, история решений.'
     UserOut:

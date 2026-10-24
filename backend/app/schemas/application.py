@@ -96,6 +96,52 @@ class ClientDecisionOut(ApiModel):
     decided_at: AwareDatetime
 
 
+class ExplainedInput(ApiModel):
+    code: str
+    label: str
+    value: str
+    source: str = Field(description="CLIENT, EGRUL, FNS или BKI")
+    source_name: str = Field(description="Источник простым языком")
+
+
+class ExplainedFactor(ApiModel):
+    code: str
+    label: str
+    value: str | None = None
+    points: int
+    max_points: int
+    impact: str = Field(description="STRENGTH или WEAKNESS")
+    impact_label: str = Field(description="«сильная сторона» или «снижает оценку»")
+    explanation: str = ""
+
+
+class ExplainedLimit(ApiModel):
+    value: str = Field(description="Доступная сумма, ₽")
+    text: str = Field(description="Как рассчитана доступная сумма")
+    components: dict[str, str]
+
+
+class DecisionThresholds(ApiModel):
+    approve: int
+    reject: int
+
+
+class DecisionExplanationOut(ApiModel):
+    """Как принято решение: человеческая версия снимка. Без внутреннего комментария андеррайтера."""
+
+    rule_code: str
+    rule_text: str = Field(description="Сработавшее правило простым языком")
+    decided_by_specialist: bool
+    score: int | None = None
+    thresholds: DecisionThresholds | None = None
+    inputs: list[ExplainedInput]
+    factors: list[ExplainedFactor]
+    limit: ExplainedLimit | None = None
+    rate: RateBreakdownOut | None = None
+    as_of_date: str
+    policy_version: str
+
+
 class OfferOut(ApiModel):
     id: int
     amount: Money = Field(description="Предложенная сумма, ₽ (при контроффере меньше запрошенной)")
@@ -151,6 +197,9 @@ class ApplicationOut(ApiModel):
     history: list[StatusHistoryItem] = Field(description="История переходов статуса, от старых к новым")
     open_info_requests: list[InfoRequestOut] = Field(description="Открытые запросы данных")
     decision: ClientDecisionOut | None = Field(default=None, description="Последнее решение")
+    decision_explanation: DecisionExplanationOut | None = Field(
+        default=None, description="Как принято последнее решение"
+    )
     offer: OfferOut | None = Field(default=None, description="Актуальный оффер")
 
     model_config = ConfigDict(

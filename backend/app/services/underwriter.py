@@ -2,6 +2,7 @@
 
 import json
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -15,8 +16,11 @@ from app.db.models import (
     LoanApplication,
     LoanApplicationAud,
 )
+from app.domain.clock import as_of_date
+from app.domain.decision.config import load_decision_config
 from app.domain.decision.engine import InfoRequestSpec
 from app.domain.decision.service import record_decision
+from app.domain.decision.snapshot import build_manual_snapshot
 from app.domain.enums import (
     STATUS_NAMES,
     ApplicationStatus,
@@ -24,6 +28,7 @@ from app.domain.enums import (
     DecisionType,
     ManualOutcome,
 )
+from app.domain.pricing import compute_rate
 from app.schemas.application import ApplicationOut
 from app.schemas.underwriter import (
     AuditEntryOut,
@@ -36,7 +41,13 @@ from app.schemas.underwriter import (
     UnderwriterApplicationOut,
 )
 from app.services.access import load_application
-from app.services.mappers import application_out, audit_rows, company_out, status_name
+from app.services.mappers import (
+    application_out,
+    audit_rows,
+    company_out,
+    latest_auto_snapshot,
+    status_name,
+)
 from app.services.validation import fmt_rub, range_errors
 
 S = ApplicationStatus
@@ -196,6 +207,7 @@ def get_underwriter_application(
                 comment=d.comment_desc,
                 decided_by=names.get(d.user_id),
                 created_at=d.create_dttm,
+                snapshot=d.decision_snapshot,
                 factors=[
                     DecisionFactorOut(code=f.factor_code, points=f.point_qnt, **_factor_fields(f.factor_cval))
                     for f in d.factors
@@ -204,7 +216,13 @@ def get_underwriter_application(
             for d in decisions
         ],
         queue_reason=queue_reason,
+        auto_limit=_auto_limit(latest_auto_snapshot(session, application_id)),
     )
+
+
+def _auto_limit(snapshot: dict | None) -> Decimal | None:
+    limit = (snapshot or {}).get("limit")
+    return Decimal(limit["value"]) if limit else None
 
 
 def make_decision(
@@ -241,6 +259,28 @@ def make_decision(
         ]
     if outcome == ManualOutcome.NEEDS_INFO and body.info_request is None:
         errors.append(field_error("infoRequest", "Укажите, какие данные нужно дозаполнить", "REQUIRED"))
+
+    # Лимит берётся из последнего AUTO-снимка; без него (источник недоступен) решение не блокируем
+    auto_limit = _auto_limit(latest_auto_snapshot(session, application_id))
+    limit_exceeded = False
+    if auto_limit is not None:
+        checked = (
+            app.requested_amt
+            if outcome == ManualOutcome.APPROVED
+            else body.offer_amount
+            if outcome == ManualOutcome.COUNTER_OFFER
+            else None
+        )
+        limit_exceeded = checked is not None and checked > auto_limit
+        if limit_exceeded and not body.override_limit:
+            errors.append(
+                field_error(
+                    "overrideLimit",
+                    f"Сумма {fmt_rub(checked)} ₽ превышает расчётный лимит {fmt_rub(auto_limit)} ₽: "
+                    "подтвердите решение выше лимита (overrideLimit: true) или уменьшите сумму",
+                    "LIMIT_EXCEEDED",
+                )
+            )
     if errors:
         raise ValidationProblem("Решение нельзя сохранить: исправьте отмеченные поля", errors=errors)
 
@@ -251,6 +291,32 @@ def make_decision(
         reason = body.client_reason or _DEFAULT_CLIENT_REASON[outcome]
         info = None
 
+    config = load_decision_config()
+    # Ставка есть только у решений с оффером; балла у ручного решения нет, поэтому надбавка применяется
+    rate = (
+        compute_rate(app.product.product_code, None, config)
+        if outcome in (ManualOutcome.APPROVED, ManualOutcome.COUNTER_OFFER)
+        else None
+    )
+    offer_amount = body.offer_amount if outcome == ManualOutcome.COUNTER_OFFER else None
+    snapshot = build_manual_snapshot(
+        config=config,
+        as_of=as_of_date(),
+        user_id=user.id,
+        user_name=session.scalar(select(AppUser.user_name).where(AppUser.user_id == user.id)),
+        outcome=outcome.value,
+        comment=body.comment,
+        offer_amount=offer_amount,
+        rate=rate,
+        auto_limit=auto_limit,
+        limit_exceeded=limit_exceeded,
+        override_limit=body.override_limit,
+    )
+    audit_comment = body.comment
+    if limit_exceeded:
+        audit_comment = (
+            f"{body.comment} [Решение выше расчётного лимита {fmt_rub(auto_limit)} ₽ принято с overrideLimit]"
+        )
     record_decision(
         session,
         app,
@@ -261,10 +327,12 @@ def make_decision(
         factors=[],
         reason=reason,
         comment=body.comment,
-        offer_amount=body.offer_amount if outcome == ManualOutcome.COUNTER_OFFER else None,
+        snapshot=snapshot,
+        offer_rate=rate.total if rate else None,
+        offer_amount=offer_amount,
         offer_term_months=body.offer_term_months if outcome == ManualOutcome.COUNTER_OFFER else None,
         info_request=info,
-        audit_comment=body.comment,
+        audit_comment=audit_comment,
     )
     session.commit()
     return application_out(session, app, user.role.value)

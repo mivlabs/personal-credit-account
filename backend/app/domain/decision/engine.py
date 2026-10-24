@@ -1,6 +1,6 @@
 """Pure scoring and policy plus a thin adapter for the existing application contract."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import ROUND_DOWN, Decimal
 
@@ -35,6 +35,7 @@ class DecisionResult:
     note: str | None = None
     limit: Decimal | None = None
     rule_code: str = ""
+    inputs: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -182,7 +183,34 @@ def decide(
         application.revenue_amt if application.revenue_amt is not None else amount(fns.get("annualRevenue"))
     )
     debt = application.debt_amt if application.debt_amt is not None else amount(bki.get("debtAmount"))
-    return evaluate(
+
+    def status_of(code):
+        result = external_data.results.get(code)
+        return result.status.value if result else "NOT_REQUESTED"
+
+    def inp(value, source, client_value=None):
+        if client_value is not None:
+            return {"value": str(value), "source": "CLIENT", "status": "PROVIDED"}
+        return {
+            "value": None if value is None else str(value),
+            "source": source.value,
+            "status": status_of(source),
+        }
+
+    inputs = {
+        "requestedAmount": {
+            "value": str(application.requested_amt),
+            "source": "CLIENT",
+            "status": "PROVIDED",
+        },
+        "annualRevenue": inp(revenue, CheckSource.FNS, application.revenue_amt),
+        "debtAmount": inp(debt, CheckSource.BKI, application.debt_amt),
+        "overdueDays": inp(bki.get("overdueDays"), CheckSource.BKI),
+        "registrationDate": inp(egrul.get("registrationDate"), CheckSource.EGRUL),
+        "active": inp(egrul.get("active"), CheckSource.EGRUL),
+        "industry": inp(egrul.get("industry"), CheckSource.EGRUL),
+    }
+    result = evaluate(
         DecisionInput(
             egrul.get("active"),
             age,
@@ -197,3 +225,4 @@ def decide(
         ),
         config,
     )
+    return replace(result, inputs=inputs)
