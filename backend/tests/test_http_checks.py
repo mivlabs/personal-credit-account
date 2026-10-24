@@ -28,3 +28,37 @@ def test_http_retry_budget_and_business_errors(monkeypatch, error, expected, att
     result = HttpExternalChecks().fetch(CheckSource.BKI, "7701000006")
     assert result.status == expected and result.data is None
     assert len(calls) == attempts and all(timeout == 0.8 for _, timeout in calls)
+
+
+@pytest.mark.live_integrations
+def test_slow_source_is_timeout_within_budget():
+    """Медленный БКИ (стаб 7701000099, задержка 2 с) не растягивает опрос за бюджет; остальные источники OK."""
+    import time
+    from types import SimpleNamespace
+
+    from app.core.config import get_settings
+
+    budget = get_settings().external_checks_budget_seconds
+    started = time.monotonic()
+    data = HttpExternalChecks().fetch_all(1, SimpleNamespace(inn_code="7701000099"))
+    elapsed = time.monotonic() - started
+    assert elapsed <= budget + 0.5
+    assert data.results[CheckSource.BKI].status == CheckStatus.TIMEOUT
+    assert data.results[CheckSource.EGRUL].status == CheckStatus.OK
+    assert data.results[CheckSource.FNS].status == CheckStatus.OK
+
+
+def test_sources_are_polled_in_parallel(monkeypatch):
+    import time
+    from types import SimpleNamespace
+
+    def slow(request, timeout):
+        time.sleep(0.3)
+        raise TimeoutError()
+
+    monkeypatch.setattr("app.integrations.http.urlopen", slow)
+    started = time.monotonic()
+    data = HttpExternalChecks().fetch_all(1, SimpleNamespace(inn_code="7701000006"))
+    # последовательно было бы 3 источника x 3 попытки x 0.3 с = 2.7 с
+    assert time.monotonic() - started < 1.5
+    assert all(r.status == CheckStatus.TIMEOUT for r in data.results.values())

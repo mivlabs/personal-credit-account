@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     # Сроки жизни: оффер и запрос данных (проверяются лениво при командах и скриптом expire_stale)
     offer_ttl_days: int = Field(default=30, gt=0)
     info_request_ttl_days: int = Field(default=14, gt=0)
+    # Общий бюджет времени на опрос трёх внешних источников (с учётом ретраев), секунды
+    external_checks_budget_seconds: float = Field(default=3.0, gt=0)
     # Дата расчёта возраста компании; по умолчанию сегодня по Europe/Moscow
     as_of_date: date | None = None
 

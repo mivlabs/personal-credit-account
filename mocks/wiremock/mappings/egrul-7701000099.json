@@ -1,0 +1,15 @@
+{
+  "request": { "method": "GET", "url": "/egrul/7701000099" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "active": true,
+      "registrationDate": "2019-02-11",
+      "industry": "trade",
+      "name": "ООО «Медленный Реестр»",
+      "ogrn": "1197700000990",
+      "legalAddress": "г. Москва, ул. Тестовая, д. 99"
+    }
+  }
+}
