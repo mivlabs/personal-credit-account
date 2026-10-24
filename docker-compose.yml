@@ -33,6 +33,10 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       PIPELINE_STEP_DELAY_SECONDS: "0"
       MOCKS_BASE_URL: http://mocks:8080
+      # Ключевая ставка ЦБ и дата расчёта возраста; пусто = значения из policy.yaml / сегодня (Europe/Moscow)
+      KEY_RATE_PCT: ${KEY_RATE_PCT:-}
+      KEY_RATE_DATE: ${KEY_RATE_DATE:-}
+      AS_OF_DATE: ${AS_OF_DATE:-}
     depends_on:
       db:
         condition: service_healthy

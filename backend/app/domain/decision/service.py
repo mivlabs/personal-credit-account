@@ -20,6 +20,7 @@ from app.domain.enums import (
     OfferStatus,
 )
 from app.domain.offers import monthly_payment
+from app.domain.pricing import compute_rate
 from app.domain.state_machine import Actor, transition
 
 
@@ -65,7 +66,11 @@ def record_decision(
     if outcome in (DecisionOutcome.APPROVED, DecisionOutcome.COUNTER_OFFER):
         amount = offer_amount if offer_amount is not None else application.requested_amt
         term = offer_term_months if offer_term_months is not None else application.term_qnt
-        rate = offer_rate if offer_rate is not None else application.product.rate_nval
+        rate = (
+            offer_rate
+            if offer_rate is not None
+            else compute_rate(application.product.product_code, None, load_decision_config()).total
+        )
         session.add(
             LoanOffer(
                 decision_id=decision.decision_id,
@@ -136,15 +141,7 @@ def record_auto_decision(
             },
             ensure_ascii=False,
         ),
-        offer_rate=(
-            config.base_rate_pct
-            + config.product_spreads[application.product.product_code]
-            + (
-                config.risk_surcharge_pct
-                if result.score is not None and result.score < config.low_risk_threshold
-                else Decimal(0)
-            )
-        ),
+        offer_rate=compute_rate(application.product.product_code, result.score, config).total,
         offer_amount=result.offer_amt,
         info_request=result.info_request,
         audit_comment=result.note or result.reason,

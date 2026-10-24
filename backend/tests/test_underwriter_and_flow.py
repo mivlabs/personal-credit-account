@@ -99,7 +99,7 @@ def test_full_path_to_issued(client: TestClient, fast, underwriter, flow: Flow):
     assert (offer["amount"], offer["termMonths"], offer["rate"], offer["status"]) == (
         1_500_000,
         24,
-        18.5,
+        17.5,  # ключевая 14.0 + спред 2.5 + риск-надбавка 1.0 (у ручного решения нет балла)
         "SENT",
     )
     assert offer["monthlyPayment"] > 0

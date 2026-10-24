@@ -1035,6 +1035,8 @@ export interface components {
              * @description Процентная ставка, % годовых
              */
             rate: number;
+            /** @description Ключевая ставка + спред продукта + риск-надбавка */
+            rateBreakdown: components["schemas"]["RateBreakdownOut"] | null;
             /**
              * Monthlypayment
              * @description Ориентировочный аннуитетный платёж, ₽; null для овердрафта
@@ -1127,7 +1129,16 @@ export interface components {
          *       "minAmount": 300000,
          *       "minTermMonths": 3,
          *       "name": "Оборотный кредит",
-         *       "rate": 18.5,
+         *       "rate": 16.5,
+         *       "rateBreakdown": {
+         *         "keyRate": 14,
+         *         "keyRateDate": "2026-09-11",
+         *         "keyRateSource": "Банк России, решение Совета директоров от 11.09.2026",
+         *         "productSpread": 2.5,
+         *         "riskSurcharge": 0,
+         *         "total": 16.5
+         *       },
+         *       "rateFrom": 16.5,
          *       "requirements": "Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней"
          *     }
          */
@@ -1157,9 +1168,16 @@ export interface components {
             maxTermMonths: number;
             /**
              * Rate
-             * @description Базовая ставка, % годовых
+             * @description Ставка «от», % годовых (то же, что rateFrom)
              */
             rate: number;
+            /**
+             * Ratefrom
+             * @description Минимальная ставка без риск-надбавки, % годовых
+             */
+            rateFrom: number;
+            /** @description Разложение минимальной ставки */
+            rateBreakdown: components["schemas"]["RateBreakdownOut"];
             /**
              * Requirements
              * @description Требования к заёмщику
@@ -1231,6 +1249,43 @@ export interface components {
             limit: number;
             /** Offset */
             offset: number;
+        };
+        /**
+         * RateBreakdownOut
+         * @description Разложение ставки: ключевая ставка ЦБ + спред продукта + риск-надбавка.
+         */
+        RateBreakdownOut: {
+            /**
+             * Keyrate
+             * @description Ключевая ставка Банка России, % годовых
+             */
+            keyRate: number;
+            /**
+             * Keyratedate
+             * Format: date
+             * @description Дата, на которую принято значение ключевой ставки
+             */
+            keyRateDate: string;
+            /**
+             * Keyratesource
+             * @description Источник значения ключевой ставки
+             */
+            keyRateSource: string;
+            /**
+             * Productspread
+             * @description Спред продукта, п.п.
+             */
+            productSpread: number;
+            /**
+             * Risksurcharge
+             * @description Риск-надбавка, п.п.
+             */
+            riskSurcharge: number;
+            /**
+             * Total
+             * @description Итоговая ставка, % годовых
+             */
+            total: number;
         };
         /**
          * SignRequest

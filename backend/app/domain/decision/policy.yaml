@@ -11,9 +11,9 @@ revenue_bands: [[3000000, 5], [10000000, 15], [999999999999999999, 25]]
 debt_bands: [['0.20', 25], ['0.50', 15], ['1.00', 10], ['999999999999999999', 0]]
 overdue_bands: [[0, 20], [30, 10], [90, 0]]
 industry_points: {services: 10, trade: 10, manufacturing: 10, construction: 5, other: 5}
-base_rate_pct: '16.0'
-base_rate_date: '2026-10-23'
-base_rate_source: 'Demo assumption; not the current Bank of Russia key rate'
+key_rate_pct: '14.0'
+key_rate_date: '2026-09-11'
+key_rate_source: 'Банк России, решение Совета директоров от 11.09.2026'
 product_spreads: {WORKING_CAPITAL: '2.5', EQUIPMENT: '0.9', OVERDRAFT: '5.0'}
 risk_surcharge_pct: '1.0'
 low_risk_threshold: 85

@@ -11,7 +11,7 @@ from app.domain.enums import (
     StageState,
 )
 from app.schemas.base import ApiModel, Money, Rate
-from app.schemas.product import ProductOut
+from app.schemas.product import ProductOut, RateBreakdownOut
 
 
 class ApplicationFields(ApiModel):
@@ -101,6 +101,9 @@ class OfferOut(ApiModel):
     amount: Money = Field(description="Предложенная сумма, ₽ (при контроффере меньше запрошенной)")
     term_months: int
     rate: Rate
+    rate_breakdown: RateBreakdownOut | None = Field(
+        default=None, description="Ключевая ставка + спред продукта + риск-надбавка"
+    )
     monthly_payment: Money | None = Field(
         default=None, description="Ориентировочный аннуитетный платёж, ₽; null для овердрафта"
     )

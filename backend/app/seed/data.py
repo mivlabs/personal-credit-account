@@ -38,7 +38,6 @@ class ProductSeed:
     max_amt: Decimal
     min_term: int
     max_term: int
-    rate: Decimal
     requirement: str
 
 
@@ -51,7 +50,6 @@ PRODUCTS: list[ProductSeed] = [
         Decimal("10000000"),
         3,
         36,
-        Decimal("18.5"),
         "Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней",
     ),
     ProductSeed(
@@ -61,7 +59,6 @@ PRODUCTS: list[ProductSeed] = [
         Decimal("30000000"),
         12,
         60,
-        Decimal("16.9"),
         "Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней",
     ),
     ProductSeed(
@@ -71,7 +68,6 @@ PRODUCTS: list[ProductSeed] = [
         Decimal("5000000"),
         1,
         12,
-        Decimal("21"),
         "Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней",
     ),
 ]

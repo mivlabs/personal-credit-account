@@ -8,6 +8,8 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.core.config import get_settings
+
 
 class DecisionConfig(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -24,9 +26,9 @@ class DecisionConfig(BaseModel):
     debt_bands: list[tuple[Decimal, int]]
     overdue_bands: list[tuple[int, int]]
     industry_points: dict[str, int]
-    base_rate_pct: Decimal = Field(ge=0, le=100)
-    base_rate_date: date
-    base_rate_source: str = Field(min_length=1)
+    key_rate_pct: Decimal = Field(ge=0, le=100)
+    key_rate_date: date
+    key_rate_source: str = Field(min_length=1)
     product_spreads: dict[str, Decimal]
     risk_surcharge_pct: Decimal = Field(ge=0, le=100)
     low_risk_threshold: int = Field(ge=0, le=100)
@@ -60,4 +62,11 @@ class DecisionConfig(BaseModel):
 @lru_cache
 def load_decision_config() -> DecisionConfig:
     path = Path(__file__).with_name("policy.yaml")
-    return DecisionConfig.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    settings = get_settings()
+    # Ключевую ставку можно переопределить окружением: значение нужно сверить с cbr.ru на дату проверки
+    if settings.key_rate_pct is not None:
+        raw["key_rate_pct"] = str(settings.key_rate_pct)
+    if settings.key_rate_date is not None:
+        raw["key_rate_date"] = settings.key_rate_date.isoformat()
+    return DecisionConfig.model_validate(raw)

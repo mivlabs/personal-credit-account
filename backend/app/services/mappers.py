@@ -1,6 +1,8 @@
 """ORM → схемы API."""
 
 import json
+from dataclasses import replace
+from decimal import Decimal
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
@@ -14,12 +16,14 @@ from app.db.models import (
     LoanApplicationAud,
     LoanOffer,
 )
+from app.domain.decision.config import load_decision_config
 from app.domain.enums import (
     STATUS_NAMES,
     ApplicationField,
     ApplicationStatus,
     InfoRequestStatus,
 )
+from app.domain.pricing import RateBreakdown, rate_from
 from app.domain.timeline import ACTION_REQUIRED_STATUSES
 from app.schemas.application import (
     ApplicationOut,
@@ -30,7 +34,7 @@ from app.schemas.application import (
     StatusHistoryItem,
 )
 from app.schemas.company import CompanyOut
-from app.schemas.product import ProductOut
+from app.schemas.product import ProductOut, RateBreakdownOut
 
 S = ApplicationStatus
 
@@ -54,7 +58,20 @@ def status_name(code: str) -> str:
     return STATUS_NAMES[ApplicationStatus(code)]
 
 
+def rate_breakdown_out(b: RateBreakdown) -> RateBreakdownOut:
+    return RateBreakdownOut(
+        key_rate=b.key_rate,
+        key_rate_date=b.key_rate_date,
+        key_rate_source=b.key_rate_source,
+        product_spread=b.product_spread,
+        risk_surcharge=b.risk_surcharge,
+        total=b.total,
+    )
+
+
 def product_out(p: DimCreditProduct) -> ProductOut:
+    # Ставка каталога — «от X %» из той же функции, что и ставка оффера
+    breakdown = rate_from(p.product_code, load_decision_config())
     return ProductOut(
         code=p.product_code,
         name=p.product_name,
@@ -62,7 +79,9 @@ def product_out(p: DimCreditProduct) -> ProductOut:
         max_amount=p.max_amt,
         min_term_months=p.min_term_qnt,
         max_term_months=p.max_term_qnt,
-        rate=p.rate_nval,
+        rate=breakdown.total,
+        rate_from=breakdown.total,
+        rate_breakdown=rate_breakdown_out(breakdown),
         requirements=p.requirement_desc,
     )
 
@@ -109,12 +128,23 @@ def info_request_out(r: InfoRequest) -> InfoRequestOut:
     )
 
 
+def offer_breakdown(total: Decimal, product_code: str) -> RateBreakdownOut | None:
+    """Разложение ставки оффера на параметрах политики; None, если ставка не сходится с политикой."""
+    config = load_decision_config()
+    base = rate_from(product_code, config)
+    surcharge = total - base.total
+    if surcharge not in (Decimal(0), config.risk_surcharge_pct):
+        return None
+    return rate_breakdown_out(replace(base, risk_surcharge=surcharge, total=total))
+
+
 def offer_out(o: LoanOffer, product_code: str = "WORKING_CAPITAL") -> OfferOut:
     return OfferOut(
         id=o.offer_id,
         amount=o.offer_amt,
         term_months=o.term_qnt,
         rate=o.rate_nval,
+        rate_breakdown=offer_breakdown(o.rate_nval, product_code),
         monthly_payment=None if product_code == "OVERDRAFT" else o.monthly_payment_amt,
         status=o.offer_status_code,
         accepted_at=o.accept_dttm,

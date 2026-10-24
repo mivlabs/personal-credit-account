@@ -1,6 +1,8 @@
+from datetime import date
+from decimal import Decimal
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,6 +20,17 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     # Пауза между шагами конвейера: на демо клиент успевает увидеть этапы. В тестах 0.
     pipeline_step_delay_seconds: float = 0.0
+    # Переопределение ключевой ставки ЦБ из policy.yaml (проверить значение на cbr.ru)
+    key_rate_pct: Decimal | None = Field(default=None, ge=0, le=100)
+    key_rate_date: date | None = None
+    # Дата расчёта возраста компании; по умолчанию сегодня по Europe/Moscow
+    as_of_date: date | None = None
+
+    @field_validator("key_rate_pct", "key_rate_date", "as_of_date", mode="before")
+    @classmethod
+    def _empty_is_unset(cls, value):
+        # docker compose передаёт незаданные переменные пустой строкой
+        return None if isinstance(value, str) and not value.strip() else value
 
     @property
     def cors_origin_list(self) -> list[str]:

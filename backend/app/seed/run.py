@@ -19,7 +19,9 @@ from app.db.models import (
     DimUserRole,
 )
 from app.db.session import get_sessionmaker
+from app.domain.decision.config import load_decision_config
 from app.domain.enums import UserRole
+from app.domain.pricing import rate_from
 from app.seed.data import (
     DEMO_CLIENTS,
     DEMO_PASSWORD,
@@ -56,6 +58,7 @@ def seed_dictionaries(session: Session) -> dict[str, int]:
         values = {"status_code": code, "status_name": name, "final_bool": final}
         stats[_sync_dim(session, DimApplicationStatus, code, values)] += 1
 
+    config = load_decision_config()
     for p in PRODUCTS:
         row = session.scalar(select(DimCreditProduct).where(DimCreditProduct.product_code == p.code.value))
         values = {
@@ -65,7 +68,7 @@ def seed_dictionaries(session: Session) -> dict[str, int]:
             "max_amt": p.max_amt,
             "min_term_qnt": p.min_term,
             "max_term_qnt": p.max_term,
-            "rate_nval": p.rate,
+            "rate_nval": rate_from(p.code.value, config).total,
             "requirement_desc": p.requirement,
             "active_bool": True,
         }
