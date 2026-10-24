@@ -1,0 +1,68 @@
+# Правила подбора продукта по цели кредита. Детерминированные, без LLM.
+# matchScore = fit (соответствие цели и продукта) минус штрафы за сумму и срок вне диапазона продукта.
+version: "2026-10-1"
+# Продукт получает recommended=true, только если он лучший, набрал не меньше порога и диапазоны не нарушены
+recommend_threshold: 60
+penalties:
+  amount_above_max: 45
+  amount_below_min: 20
+  term_above_max: 35
+  term_below_min: 20
+  term_atypical: 10
+purposes:
+  WORKING_CAPITAL_TOPUP:
+    label: Пополнение оборотных средств
+    fit: {WORKING_CAPITAL: 95, OVERDRAFT: 55, EQUIPMENT: 10}
+    typical_term_months: [3, 36]
+    reasons:
+      WORKING_CAPITAL: Оборотный кредит рассчитан на пополнение оборотных средств
+      OVERDRAFT: Овердрафт покрывает текущие расходы, но лимит меньше и срок короче
+      EQUIPMENT: Кредит на оборудование не предназначен для текущих расходов
+  GOODS_PURCHASE:
+    label: Закупка товара или сырья
+    fit: {WORKING_CAPITAL: 90, OVERDRAFT: 50, EQUIPMENT: 10}
+    typical_term_months: [3, 24]
+    reasons:
+      WORKING_CAPITAL: Оборотный кредит подходит для закупки товара и сырья
+      OVERDRAFT: Овердрафт подходит для небольших закупок на короткий срок
+      EQUIPMENT: Кредит на оборудование не подходит для закупки товара
+  EQUIPMENT_PURCHASE:
+    label: Покупка оборудования или транспорта
+    fit: {EQUIPMENT: 95, WORKING_CAPITAL: 35, OVERDRAFT: 5}
+    typical_term_months: [12, 60]
+    reasons:
+      EQUIPMENT: Кредит на оборудование создан для покупки оборудования и транспорта
+      WORKING_CAPITAL: Оборотный кредит можно использовать на покупку, но срок и сумма ограничены
+      OVERDRAFT: Овердрафт слишком короткий для покупки оборудования
+  CASH_GAP:
+    label: Кассовый разрыв
+    fit: {OVERDRAFT: 95, WORKING_CAPITAL: 45, EQUIPMENT: 5}
+    typical_term_months: [1, 6]
+    reasons:
+      OVERDRAFT: Овердрафт закрывает кассовый разрыв на короткий срок
+      WORKING_CAPITAL: Оборотный кредит можно взять на разрыв, но он оформляется на более долгий срок
+      EQUIPMENT: Кредит на оборудование не подходит для кассового разрыва
+  SEASONAL:
+    label: Сезонные расходы
+    fit: {WORKING_CAPITAL: 85, OVERDRAFT: 65, EQUIPMENT: 10}
+    typical_term_months: [3, 12]
+    reasons:
+      WORKING_CAPITAL: Оборотный кредит покрывает сезонные расходы на нужный срок
+      OVERDRAFT: Овердрафт подходит для небольших сезонных пиков
+      EQUIPMENT: Кредит на оборудование не подходит для сезонных расходов
+  EXPANSION:
+    label: Ремонт или расширение
+    fit: {EQUIPMENT: 80, WORKING_CAPITAL: 65, OVERDRAFT: 10}
+    typical_term_months: [12, 60]
+    reasons:
+      EQUIPMENT: Кредит на оборудование подходит для расширения с покупкой активов
+      WORKING_CAPITAL: Оборотный кредит подходит для ремонта и расходов на запуск
+      OVERDRAFT: Овердрафт слишком короткий для расширения
+  OTHER:
+    label: Другая цель
+    fit: {WORKING_CAPITAL: 70, EQUIPMENT: 40, OVERDRAFT: 30}
+    typical_term_months: [3, 36]
+    reasons:
+      WORKING_CAPITAL: Универсальный продукт для целей, которых нет в списке
+      EQUIPMENT: Подходит, только если цель связана с покупкой активов
+      OVERDRAFT: Подходит для небольших краткосрочных расходов

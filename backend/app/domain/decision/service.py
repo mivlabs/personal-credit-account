@@ -5,11 +5,14 @@
 """
 
 import json
+from datetime import timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import clock
+from app.core.config import get_settings
 from app.db.models import (
     CreditDecision,
     DecisionFactor,
@@ -93,6 +96,7 @@ def record_decision(
                 if application.product.product_code == "OVERDRAFT"
                 else monthly_payment(amount, rate, term),
                 offer_status_code=OfferStatus.SENT.value,
+                valid_until_dttm=clock.now() + timedelta(days=get_settings().offer_ttl_days),
             )
         )
 
@@ -104,6 +108,7 @@ def record_decision(
                 request_desc=info_request.description,
                 field_list_cval=json.dumps([f.value for f in info_request.fields]),
                 request_status_code=InfoRequestStatus.OPEN.value,
+                due_dttm=clock.now() + timedelta(days=get_settings().info_request_ttl_days),
             )
         )
 

@@ -24,6 +24,7 @@
 | `ISSUED` | Кредит выдан | да |
 | `DECLINED_BY_CLIENT` | Вы отказались | да |
 | `WITHDRAWN` | Заявка отозвана | да |
+| `EXPIRED` | Срок истёк | да |
 
 ## Переходы
 
@@ -49,6 +50,9 @@
 | `APPROVED` | `DECLINED_BY_CLIENT` | Клиент | Клиент отказался от оффера |
 | `COUNTER_OFFER` | `OFFER_ACCEPTED` | Клиент | Клиент принял встречное предложение |
 | `COUNTER_OFFER` | `DECLINED_BY_CLIENT` | Клиент | Клиент отказался от встречного предложения |
+| `APPROVED` | `EXPIRED` | Система | Срок действия предложения истёк |
+| `COUNTER_OFFER` | `EXPIRED` | Система | Срок действия встречного предложения истёк |
+| `NEEDS_INFO` | `EXPIRED` | Система | Срок ответа на запрос данных истёк |
 | `DRAFT` | `WITHDRAWN` | Клиент | Клиент отозвал черновик |
 | `NEEDS_INFO` | `WITHDRAWN` | Клиент | Клиент отозвал заявку вместо дозаполнения данных |
 | `MANUAL_REVIEW` | `WITHDRAWN` | Клиент | Клиент отозвал заявку до решения специалиста |
@@ -80,6 +84,9 @@ stateDiagram-v2
     APPROVED --> DECLINED_BY_CLIENT: Клиент
     COUNTER_OFFER --> OFFER_ACCEPTED: Клиент
     COUNTER_OFFER --> DECLINED_BY_CLIENT: Клиент
+    APPROVED --> EXPIRED: Система
+    COUNTER_OFFER --> EXPIRED: Система
+    NEEDS_INFO --> EXPIRED: Система
     DRAFT --> WITHDRAWN: Клиент
     NEEDS_INFO --> WITHDRAWN: Клиент
     MANUAL_REVIEW --> WITHDRAWN: Клиент
@@ -89,4 +96,5 @@ stateDiagram-v2
     ISSUED --> [*]
     DECLINED_BY_CLIENT --> [*]
     WITHDRAWN --> [*]
+    EXPIRED --> [*]
 ```

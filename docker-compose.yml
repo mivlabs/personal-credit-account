@@ -37,6 +37,8 @@ services:
       KEY_RATE_PCT: ${KEY_RATE_PCT:-}
       KEY_RATE_DATE: ${KEY_RATE_DATE:-}
       AS_OF_DATE: ${AS_OF_DATE:-}
+      OFFER_TTL_DAYS: ${OFFER_TTL_DAYS:-30}
+      INFO_REQUEST_TTL_DAYS: ${INFO_REQUEST_TTL_DAYS:-14}
     depends_on:
       db:
         condition: service_healthy

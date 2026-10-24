@@ -1,13 +1,13 @@
 """Сценарии андеррайтера: очередь, экран заявки, ручное решение, аудит."""
 
 import json
-from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import AuthUser
+from app.core import clock
 from app.core.errors import InvalidTransitionError, ValidationProblem, field_error
 from app.db.models import (
     AppUser,
@@ -109,7 +109,7 @@ def get_queue(
         ):
             scores[d.application_id] = d.score_qnt  # последнее решение перекрывает предыдущие
 
-    now = datetime.now(UTC)
+    now = clock.now()
     items = [
         QueueItem(
             application_id=app.application_id,

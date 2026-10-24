@@ -23,10 +23,20 @@ class Settings(BaseSettings):
     # Переопределение ключевой ставки ЦБ из policy.yaml (проверить значение на cbr.ru)
     key_rate_pct: Decimal | None = Field(default=None, ge=0, le=100)
     key_rate_date: date | None = None
+    # Сроки жизни: оффер и запрос данных (проверяются лениво при командах и скриптом expire_stale)
+    offer_ttl_days: int = Field(default=30, gt=0)
+    info_request_ttl_days: int = Field(default=14, gt=0)
     # Дата расчёта возраста компании; по умолчанию сегодня по Europe/Moscow
     as_of_date: date | None = None
 
-    @field_validator("key_rate_pct", "key_rate_date", "as_of_date", mode="before")
+    @field_validator(
+        "key_rate_pct",
+        "key_rate_date",
+        "as_of_date",
+        "offer_ttl_days",
+        "info_request_ttl_days",
+        mode="before",
+    )
     @classmethod
     def _empty_is_unset(cls, value):
         # docker compose передаёт незаданные переменные пустой строкой

@@ -17,6 +17,7 @@ class ApplicationStatus(StrEnum):
     ISSUED = "ISSUED"
     DECLINED_BY_CLIENT = "DECLINED_BY_CLIENT"
     WITHDRAWN = "WITHDRAWN"
+    EXPIRED = "EXPIRED"
 
 
 # Названия статусов для клиента (источник и для API, и для seed справочника dim_application_status)
@@ -36,6 +37,7 @@ STATUS_NAMES: dict[ApplicationStatus, str] = {
     ApplicationStatus.ISSUED: "Кредит выдан",
     ApplicationStatus.DECLINED_BY_CLIENT: "Вы отказались",
     ApplicationStatus.WITHDRAWN: "Заявка отозвана",
+    ApplicationStatus.EXPIRED: "Срок истёк",
 }
 
 FINAL_STATUSES: frozenset[ApplicationStatus] = frozenset(
@@ -44,6 +46,7 @@ FINAL_STATUSES: frozenset[ApplicationStatus] = frozenset(
         ApplicationStatus.ISSUED,
         ApplicationStatus.DECLINED_BY_CLIENT,
         ApplicationStatus.WITHDRAWN,
+        ApplicationStatus.EXPIRED,
     }
 )
 
@@ -140,6 +143,7 @@ class StageState(StrEnum):
 class ErrorCode(StrEnum):
     VALIDATION_ERROR = "VALIDATION_ERROR"
     INVALID_TRANSITION = "INVALID_TRANSITION"
+    EXPIRED = "EXPIRED"
     NOT_FOUND = "NOT_FOUND"
     FORBIDDEN = "FORBIDDEN"
     UNAUTHORIZED = "UNAUTHORIZED"
@@ -148,3 +152,15 @@ class ErrorCode(StrEnum):
     NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
     SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
     INTERNAL_ERROR = "INTERNAL_ERROR"
+
+
+class PurposeCategory(StrEnum):
+    """Категория цели кредита для подбора продукта (domain/recommendation.yaml)."""
+
+    WORKING_CAPITAL_TOPUP = "WORKING_CAPITAL_TOPUP"
+    GOODS_PURCHASE = "GOODS_PURCHASE"
+    EQUIPMENT_PURCHASE = "EQUIPMENT_PURCHASE"
+    CASH_GAP = "CASH_GAP"
+    SEASONAL = "SEASONAL"
+    EXPANSION = "EXPANSION"
+    OTHER = "OTHER"

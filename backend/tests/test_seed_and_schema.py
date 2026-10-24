@@ -21,7 +21,7 @@ def counts(db: Session) -> dict[str, int]:
 def test_seed_content(db: Session):
     assert counts(db) == {
         "dim_user_role": 2,
-        "dim_application_status": 14,
+        "dim_application_status": 16,
         "dim_credit_product": 3,
         "company": 6,
         "app_user": 7,

@@ -167,3 +167,18 @@ def external(monkeypatch):
         monkeypatch.setattr("app.domain.pipeline.get_external_checks_client", FakeChecks)
 
     return use
+
+
+@pytest.fixture
+def travel(monkeypatch):
+    """Сдвигает «сейчас» бизнес-кода вперёд: travel(days=40)."""
+    from datetime import timedelta
+
+    from app.core import clock
+
+    real = clock.now
+
+    def go(days: float) -> None:
+        monkeypatch.setattr(clock, "now", lambda: real() + timedelta(days=days))
+
+    return go

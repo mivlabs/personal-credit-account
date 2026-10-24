@@ -128,6 +128,7 @@ def info_request_out(r: InfoRequest) -> InfoRequestOut:
         status=r.request_status_code,
         created_at=r.create_dttm,
         answered_at=r.answer_dttm,
+        due_at=r.due_dttm,
     )
 
 
@@ -168,6 +169,7 @@ def offer_out(o: LoanOffer, product_code: str = "WORKING_CAPITAL", snapshot: dic
         status=o.offer_status_code,
         accepted_at=o.accept_dttm,
         signed_at=o.sign_dttm,
+        valid_until=o.valid_until_dttm,
     )
 
 

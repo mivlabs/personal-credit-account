@@ -115,6 +115,46 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
       security:
       - bearerAuth: []
+  /api/v1/products/recommendations:
+    post:
+      tags:
+      - products
+      summary: Подбор продукта по цели
+      description: Продукты по убыванию соответствия цели, сумме и сроку, с причинами оценки. Без LLM, правила в `recommendation.yaml`.
+      operationId: recommendProducts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationsOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      security:
+      - bearerAuth: []
   /api/v1/companies/me:
     get:
       tags:
@@ -1469,6 +1509,7 @@ components:
       - ISSUED
       - DECLINED_BY_CLIENT
       - WITHDRAWN
+      - EXPIRED
       title: ApplicationStatus
     ApplicationSummary:
       properties:
@@ -1955,6 +1996,7 @@ components:
       enum:
       - VALIDATION_ERROR
       - INVALID_TRANSITION
+      - EXPIRED
       - NOT_FOUND
       - FORBIDDEN
       - UNAUTHORIZED
@@ -2176,6 +2218,13 @@ components:
             format: date-time
           - type: 'null'
           title: Answeredat
+        dueAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Dueat
+          description: Срок ответа; после него заявка истекает
       type: object
       required:
       - id
@@ -2184,6 +2233,7 @@ components:
       - status
       - createdAt
       - answeredAt
+      - dueAt
       title: InfoRequestOut
     InfoRequestStatus:
       type: string
@@ -2357,6 +2407,13 @@ components:
             format: date-time
           - type: 'null'
           title: Signedat
+        validUntil:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Validuntil
+          description: До какого момента оффер можно принять; null у старых офферов
       type: object
       required:
       - id
@@ -2368,6 +2425,7 @@ components:
       - status
       - acceptedAt
       - signedAt
+      - validUntil
       title: OfferOut
     OfferStatus:
       type: string
@@ -2531,6 +2589,51 @@ components:
           total: 16.5
         rateFrom: 16.5
         requirements: Бизнесу не менее 6 месяцев, нет просрочки свыше 90 дней
+    ProductRecommendation:
+      properties:
+        product:
+          $ref: '#/components/schemas/ProductOut'
+        matchScore:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Matchscore
+          description: Соответствие цели, суммы и срока продукту, 0–100
+        recommended:
+          type: boolean
+          title: Recommended
+          description: Лучший продукт, подходящий по сумме и сроку
+        reasons:
+          items:
+            type: string
+          type: array
+          title: Reasons
+          description: Почему продукт получил такую оценку
+        rateFrom:
+          type: number
+          minimum: 0.0
+          title: Ratefrom
+          description: Ставка «от», % годовых (единая функция ставки)
+      type: object
+      required:
+      - product
+      - matchScore
+      - recommended
+      - reasons
+      - rateFrom
+      title: ProductRecommendation
+    PurposeCategory:
+      type: string
+      enum:
+      - WORKING_CAPITAL_TOPUP
+      - GOODS_PURCHASE
+      - EQUIPMENT_PURCHASE
+      - CASH_GAP
+      - SEASONAL
+      - EXPANSION
+      - OTHER
+      title: PurposeCategory
+      description: Категория цели кредита для подбора продукта (domain/recommendation.yaml).
     QueueItem:
       properties:
         status:
@@ -2680,6 +2783,56 @@ components:
       title: RecheckRequest
       examples:
       - comment: БКИ был недоступен, повторяем
+    RecommendationRequest:
+      properties:
+        purposeCategory:
+          $ref: '#/components/schemas/PurposeCategory'
+          description: Категория цели кредита
+        amount:
+          anyOf:
+          - type: number
+            multipleOf: 0.01
+            minimum: 0.0
+            description: Сумма в рублях, не более 2 знаков после запятой
+          - type: 'null'
+          title: Amount
+          description: Желаемая сумма, ₽
+        termMonths:
+          anyOf:
+          - type: integer
+            maximum: 120.0
+            minimum: 1.0
+          - type: 'null'
+          title: Termmonths
+          description: Желаемый срок, мес.
+      type: object
+      required:
+      - purposeCategory
+      title: RecommendationRequest
+    RecommendationsOut:
+      properties:
+        purposeCategory:
+          $ref: '#/components/schemas/PurposeCategory'
+        purposeLabel:
+          type: string
+          title: Purposelabel
+        rulesVersion:
+          type: string
+          title: Rulesversion
+          description: Версия правил подбора (recommendation.yaml)
+        items:
+          items:
+            $ref: '#/components/schemas/ProductRecommendation'
+          type: array
+          title: Items
+          description: Продукты по убыванию соответствия
+      type: object
+      required:
+      - purposeCategory
+      - purposeLabel
+      - rulesVersion
+      - items
+      title: RecommendationsOut
     SignRequest:
       properties:
         code:

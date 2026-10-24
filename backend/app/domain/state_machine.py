@@ -6,12 +6,12 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from enum import StrEnum
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.errors import ForbiddenError, InvalidTransitionError
 from app.db.models import LoanApplication, LoanApplicationAud
 from app.domain.enums import FINAL_STATUSES, STATUS_NAMES, ApplicationStatus
@@ -86,6 +86,9 @@ TRANSITIONS: tuple[Transition, ...] = (
     Transition(
         S.COUNTER_OFFER, S.DECLINED_BY_CLIENT, Actor.CLIENT, "Клиент отказался от встречного предложения"
     ),
+    Transition(S.APPROVED, S.EXPIRED, Actor.SYSTEM, "Срок действия предложения истёк"),
+    Transition(S.COUNTER_OFFER, S.EXPIRED, Actor.SYSTEM, "Срок действия встречного предложения истёк"),
+    Transition(S.NEEDS_INFO, S.EXPIRED, Actor.SYSTEM, "Срок ответа на запрос данных истёк"),
     Transition(S.DRAFT, S.WITHDRAWN, Actor.CLIENT, "Клиент отозвал черновик"),
     Transition(S.NEEDS_INFO, S.WITHDRAWN, Actor.CLIENT, "Клиент отозвал заявку вместо дозаполнения данных"),
     Transition(S.MANUAL_REVIEW, S.WITHDRAWN, Actor.CLIENT, "Клиент отозвал заявку до решения специалиста"),
@@ -121,7 +124,7 @@ def record_creation(
         from_status_code=None,
         to_status_code=application.status_code,
         event_desc="Черновик создан",
-        create_dttm=datetime.now(UTC),
+        create_dttm=clock.now(),
     )
     session.add(row)
     session.flush()
@@ -171,7 +174,7 @@ def transition(
         from_status_code=source.value,
         to_status_code=to_status.value,
         event_desc=comment,
-        create_dttm=datetime.now(UTC),
+        create_dttm=clock.now(),
     )
     session.add(row)
     session.flush()

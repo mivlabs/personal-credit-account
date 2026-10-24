@@ -85,6 +85,7 @@ class InfoRequest(Base):
     field_list_cval: Mapped[CharValue] = mapped_column(server_default="[]")
     request_status_code: Mapped[Code]
     answer_dttm: Mapped[DateTime_ | None]
+    due_dttm: Mapped[DateTime_ | None]
     create_dttm: Mapped[DateTime_] = create_dttm_column()
 
 

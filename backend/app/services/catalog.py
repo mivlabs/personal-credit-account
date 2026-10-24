@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import AuthUser
 from app.core.errors import NotFoundError
 from app.db.models import Company, DimCreditProduct
+from app.domain.enums import ProductCode
 from app.schemas.company import CompanyOut
-from app.schemas.product import ProductOut
+from app.domain.recommendation import ProductLimits, load_recommendation_config, rank_products
+from app.schemas.product import ProductOut, ProductRecommendation, RecommendationRequest, RecommendationsOut
 from app.services.mappers import company_out, product_out
 
 
@@ -18,6 +20,39 @@ def list_products(session: Session) -> list[ProductOut]:
         .order_by(DimCreditProduct.product_id)
     )
     return [product_out(p) for p in rows]
+
+
+def recommend_products(session: Session, body: RecommendationRequest) -> RecommendationsOut:
+    """Детерминированный подбор по правилам recommendation.yaml; ставка «от» берётся из каталога."""
+    rows = list(
+        session.scalars(
+            select(DimCreditProduct)
+            .where(DimCreditProduct.active_bool.is_(True))
+            .order_by(DimCreditProduct.product_id)
+        )
+    )
+    config = load_recommendation_config()
+    limits = [
+        ProductLimits(ProductCode(p.product_code), p.min_amt, p.max_amt, p.min_term_qnt, p.max_term_qnt)
+        for p in rows
+    ]
+    by_code = {p.product_code: product_out(p) for p in rows}
+    ranked = rank_products(limits, body.purpose_category, body.amount, body.term_months, config)
+    return RecommendationsOut(
+        purpose_category=body.purpose_category,
+        purpose_label=config.purposes[body.purpose_category].label,
+        rules_version=config.version,
+        items=[
+            ProductRecommendation(
+                product=by_code[m.code],
+                match_score=m.score,
+                recommended=m.recommended,
+                reasons=m.reasons,
+                rate_from=by_code[m.code].rate_from,
+            )
+            for m in ranked
+        ],
+    )
 
 
 def get_my_company(session: Session, user: AuthUser) -> CompanyOut:

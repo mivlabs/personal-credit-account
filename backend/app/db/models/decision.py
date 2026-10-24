@@ -78,4 +78,5 @@ class LoanOffer(Base):
     offer_status_code: Mapped[Code]
     accept_dttm: Mapped[DateTime_ | None]
     sign_dttm: Mapped[DateTime_ | None]
+    valid_until_dttm: Mapped[DateTime_ | None]
     create_dttm: Mapped[DateTime_] = create_dttm_column()

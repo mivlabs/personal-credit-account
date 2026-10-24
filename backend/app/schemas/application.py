@@ -86,6 +86,7 @@ class InfoRequestOut(ApiModel):
     status: InfoRequestStatus
     created_at: AwareDatetime
     answered_at: AwareDatetime | None = None
+    due_at: AwareDatetime | None = Field(default=None, description="Срок ответа; после него заявка истекает")
 
 
 class ClientDecisionOut(ApiModel):
@@ -156,6 +157,9 @@ class OfferOut(ApiModel):
     status: OfferStatus
     accepted_at: AwareDatetime | None = None
     signed_at: AwareDatetime | None = None
+    valid_until: AwareDatetime | None = Field(
+        default=None, description="До какого момента оффер можно принять; null у старых офферов"
+    )
 
 
 class ApplicationSummary(ApiModel):

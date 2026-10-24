@@ -85,6 +85,12 @@ class InvalidTransitionError(ProblemError):
     title = "Недопустимый переход статуса"
 
 
+class ExpiredError(ProblemError):
+    status = 409
+    code = ErrorCode.EXPIRED
+    title = "Срок истёк"
+
+
 class IdempotencyConflictError(ProblemError):
     status = 409
     code = ErrorCode.IDEMPOTENCY_CONFLICT

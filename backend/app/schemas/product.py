@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import ConfigDict, Field
 
-from app.domain.enums import ProductCode
+from app.domain.enums import ProductCode, PurposeCategory
 from app.schemas.base import ApiModel, Money, Rate
 
 
@@ -54,3 +54,24 @@ class ProductOut(ApiModel):
             ]
         }
     )
+
+
+class RecommendationRequest(ApiModel):
+    purpose_category: PurposeCategory = Field(description="Категория цели кредита")
+    amount: Money | None = Field(default=None, gt=0, description="Желаемая сумма, ₽")
+    term_months: int | None = Field(default=None, ge=1, le=120, description="Желаемый срок, мес.")
+
+
+class ProductRecommendation(ApiModel):
+    product: ProductOut
+    match_score: int = Field(ge=0, le=100, description="Соответствие цели, суммы и срока продукту, 0–100")
+    recommended: bool = Field(description="Лучший продукт, подходящий по сумме и сроку")
+    reasons: list[str] = Field(description="Почему продукт получил такую оценку")
+    rate_from: Rate = Field(description="Ставка «от», % годовых (единая функция ставки)")
+
+
+class RecommendationsOut(ApiModel):
+    purpose_category: PurposeCategory
+    purpose_label: str
+    rules_version: str = Field(description="Версия правил подбора (recommendation.yaml)")
+    items: list[ProductRecommendation] = Field(description="Продукты по убыванию соответствия")

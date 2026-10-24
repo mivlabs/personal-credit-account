@@ -1,13 +1,13 @@
 """Сценарии клиента: черновик, подача, дозаполнение, оффер, подписание, таймлайн."""
 
 import hmac
-from datetime import UTC, datetime
 
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import AuthUser
+from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import (
     IdempotencyConflictError,
@@ -38,6 +38,7 @@ from app.schemas.application import (
     TimelineStage,
 )
 from app.services.access import load_application
+from app.services.expiry import ensure_not_expired
 from app.services.mappers import (
     application_out,
     application_summary,
@@ -164,7 +165,7 @@ def submit_application(
         raise IdempotencyConflictError("Этот ключ идемпотентности уже использован для другой заявки")
 
     app.idempotency_key_code = idempotency_key
-    app.submit_dttm = datetime.now(UTC)
+    app.submit_dttm = clock.now()
     transition(session, app, S.SUBMITTED, user.id, "Заявка подана клиентом", actor=Actor.CLIENT)
     process_pipeline(session, app)
     try:
@@ -200,6 +201,7 @@ def answer_missing_info(
             f"сейчас: «{status_name(app.status_code)}»"
         )
 
+    ensure_not_expired(session, app)
     requests = open_info_requests(session, application_id)
     requested = {f for r in requests for f in parse_fields(r.field_list_cval)}
 
@@ -227,7 +229,7 @@ def answer_missing_info(
 
     for field, value in provided.items():
         setattr(app, FIELD_ATTR[field], value)
-    now = datetime.now(UTC)
+    now = clock.now()
     for r in requests:
         r.request_status_code = InfoRequestStatus.ANSWERED.value
         r.answer_dttm = now
@@ -251,9 +253,10 @@ def accept_offer(session: Session, user: AuthUser, application_id: int) -> Accep
             f"Принять предложение можно в статусах «{STATUS_NAMES[S.APPROVED]}» и "
             f"«{STATUS_NAMES[S.COUNTER_OFFER]}», сейчас: «{status_name(app.status_code)}»"
         )
+    ensure_not_expired(session, app)
     offer = _sent_offer(session, app)
     offer.offer_status_code = OfferStatus.ACCEPTED.value
-    offer.accept_dttm = datetime.now(UTC)
+    offer.accept_dttm = clock.now()
     transition(session, app, S.OFFER_ACCEPTED, user.id, "Клиент принял предложение", actor=Actor.CLIENT)
     transition(session, app, S.SIGNING, None, "Договор подготовлен к подписанию", actor=Actor.SYSTEM)
     _commit(session)
@@ -271,6 +274,7 @@ def decline_offer(session: Session, user: AuthUser, application_id: int) -> Appl
             f"Отказаться от предложения можно в статусах «{STATUS_NAMES[S.APPROVED]}» и "
             f"«{STATUS_NAMES[S.COUNTER_OFFER]}», сейчас: «{status_name(app.status_code)}»"
         )
+    ensure_not_expired(session, app)
     offer = _sent_offer(session, app)
     offer.offer_status_code = OfferStatus.DECLINED.value
     transition(
@@ -305,6 +309,9 @@ def sign_application(session: Session, user: AuthUser, application_id: int, code
             f"Подписать договор можно в статусе «{STATUS_NAMES[S.SIGNING]}», "
             f"сейчас: «{status_name(app.status_code)}»"
         )
+    ensure_not_expired(
+        session, app
+    )  # в SIGNING срок не истекает: проверка защищает на случай новых переходов
     expected = get_settings().demo_sign_code
     if not hmac.compare_digest(code.encode(), expected.encode()):
         raise ValidationProblem(
@@ -313,7 +320,7 @@ def sign_application(session: Session, user: AuthUser, application_id: int, code
         )
     offer = _sent_offer(session, app)
     offer.offer_status_code = OfferStatus.SIGNED.value
-    offer.sign_dttm = datetime.now(UTC)
+    offer.sign_dttm = clock.now()
     session.add(
         Disbursement(application_id=app.application_id, offer_id=offer.offer_id, amount_amt=offer.offer_amt)
     )

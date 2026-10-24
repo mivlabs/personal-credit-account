@@ -7,9 +7,12 @@ SUBMITTED → CHECKING → EXTERNAL_CHECK → SCORING → итог решени�
 import json
 import logging
 from collections.abc import Callable
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
+from app.core import clock
+from app.core.config import get_settings
 from app.core.logging import application_id_var
 from app.db.models import InfoRequest, LoanApplication
 from app.db.session import get_sessionmaker
@@ -41,6 +44,7 @@ def _check_completeness(session: Session, app: LoanApplication) -> None:
                 request_desc="Заполните недостающие данные заявки",
                 field_list_cval=json.dumps([f.value for f in missing]),
                 request_status_code=InfoRequestStatus.OPEN.value,
+                due_dttm=clock.now() + timedelta(days=get_settings().info_request_ttl_days),
             )
         )
         transition(
