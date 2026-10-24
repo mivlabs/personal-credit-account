@@ -25,6 +25,7 @@ def test_operation_ids_are_unique_camel_case():
 def test_all_contract_endpoints_present():
     expected = {
         ("post", "/api/v1/auth/login"),
+        ("post", "/api/v1/auth/register"),
         ("get", "/api/v1/auth/me"),
         ("get", "/api/v1/products"),
         ("get", "/api/v1/companies/me"),
@@ -56,7 +57,7 @@ def test_errors_are_problem_json_and_secured_operations_use_bearer():
         for status, resp in op["responses"].items():
             if int(status) >= 400:
                 assert list(resp["content"]) == ["application/problem+json"], (path, method, status)
-        if path not in ("/api/v1/auth/login", "/health"):
+        if path not in ("/api/v1/auth/login", "/api/v1/auth/register", "/health"):
             assert op["security"] == [{"bearerAuth": []}], (path, method)
 
 

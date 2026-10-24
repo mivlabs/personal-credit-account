@@ -26,6 +26,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Регистрация клиента по ИНН
+         * @description Без авторизации. Проверяет ИНН по контрольным числам ФНС, запрашивает ЕГРЮЛ и создаёт компанию
+         *     с клиентом; в ответе то же, что у входа (токен и пользователь), повторно входить не нужно.
+         *
+         *     422 `VALIDATION_ERROR` с `errors[]` по полям `login`, `password`, `inn`; 409 `LOGIN_TAKEN` / `INN_TAKEN`;
+         *     503 `EGRUL_UNAVAILABLE` (компания не создаётся); 429 `TOO_MANY_REQUESTS` при превышении лимита попыток с IP.
+         *     Сценарий проверки в моках задаёт 9-я цифра ИНН (docs/test-accounts.md).
+         */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -942,7 +967,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "EXPIRED" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "TOO_MANY_REQUESTS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
+        ErrorCode: "VALIDATION_ERROR" | "INVALID_TRANSITION" | "EXPIRED" | "NOT_FOUND" | "FORBIDDEN" | "UNAUTHORIZED" | "INVALID_CREDENTIALS" | "LOGIN_TAKEN" | "INN_TAKEN" | "EGRUL_UNAVAILABLE" | "TOO_MANY_REQUESTS" | "IDEMPOTENCY_CONFLICT" | "NOT_IMPLEMENTED" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR";
         /** ExplainedFactor */
         ExplainedFactor: {
             /** Code */
@@ -1550,6 +1575,31 @@ export interface components {
             items: components["schemas"]["ProductRecommendation"][];
         };
         /**
+         * RegisterRequest
+         * @example {
+         *       "inn": "7702000011",
+         *       "login": "my_company",
+         *       "password": "secret123"
+         *     }
+         */
+        RegisterRequest: {
+            /**
+             * Login
+             * @description Логин: 3–32 символа `a-z`, `0-9`, `_`, `.`, `-`
+             */
+            login: string;
+            /**
+             * Password
+             * @description Пароль, не короче 8 символов
+             */
+            password: string;
+            /**
+             * Inn
+             * @description ИНН: 10 цифр (организация) или 12 (ИП), контрольные числа ФНС
+             */
+            inn: string;
+        };
+        /**
          * SignRequest
          * @example {
          *       "code": "123456"
@@ -1770,6 +1820,66 @@ export interface operations {
             };
             /** @description Слишком много неудачных попыток входа; смотрите заголовок `Retry-After` */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description Логин занят (`LOGIN_TAKEN`) или ИНН уже зарегистрирован (`INN_TAKEN`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Ошибка валидации: `errors[]` указывает на поля */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Слишком много неудачных попыток входа; смотрите заголовок `Retry-After` */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description ЕГРЮЛ недоступен (`EGRUL_UNAVAILABLE`), компания не создана */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

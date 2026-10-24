@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     # Ограничение попыток входа (логин + IP, в памяти процесса)
     login_max_failures: int = Field(default=5, gt=0)
     login_window_seconds: int = Field(default=300, gt=0)
+    # Регистрация считает все попытки с одного IP в том же окне (создаёт строки в БД, поэтому успешные тоже)
+    register_max_attempts: int = Field(default=20, gt=0)
     mocks_base_url: str = "http://localhost:8081"
     log_level: str = "INFO"
     # Пауза между шагами конвейера: на демо клиент успевает увидеть этапы. В тестах 0.

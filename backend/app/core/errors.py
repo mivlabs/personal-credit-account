@@ -107,6 +107,24 @@ class TooManyRequestsError(ProblemError):
         super().__init__(detail, headers={"Retry-After": str(retry_after)})
 
 
+class LoginTakenError(ProblemError):
+    status = 409
+    code = ErrorCode.LOGIN_TAKEN
+    title = "Логин занят"
+
+
+class InnTakenError(ProblemError):
+    status = 409
+    code = ErrorCode.INN_TAKEN
+    title = "ИНН уже зарегистрирован"
+
+
+class EgrulUnavailableError(ProblemError):
+    status = 503
+    code = ErrorCode.EGRUL_UNAVAILABLE
+    title = "ЕГРЮЛ временно недоступен"
+
+
 class ValidationProblem(ProblemError):
     status = 422
     code = ErrorCode.VALIDATION_ERROR

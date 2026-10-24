@@ -13,6 +13,20 @@ class LoginRequest(ApiModel):
     )
 
 
+class RegisterRequest(ApiModel):
+    login: str = Field(max_length=64, description="Логин: 3–32 символа `a-z`, `0-9`, `_`, `.`, `-`")
+    password: str = Field(max_length=128, description="Пароль, не короче 8 символов")
+    inn: str = Field(
+        max_length=32, description="ИНН: 10 цифр (организация) или 12 (ИП), контрольные числа ФНС"
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [{"login": "my_company", "password": "secret123", "inn": "7702000011"}]
+        }
+    )
+
+
 class UserOut(ApiModel):
     id: int
     name: str = Field(description="ФИО")
