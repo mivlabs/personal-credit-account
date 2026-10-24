@@ -8,13 +8,26 @@ from app.db.base import Base
 from app.db.models import AppUser, Company, DimApplicationStatus, DimCreditProduct, DimUserRole
 from app.db.session import get_engine, get_sessionmaker
 from app.domain.enums import FINAL_STATUSES, ApplicationStatus
+from app.seed.data import DEMO_CLIENTS
 from app.seed.run import run_seed
+
+# Регистрация по ИНН (test_registration) добавляет компании и клиентов в ту же БД: seed проверяем по его строкам
+SEED_COMPANY = Company.inn_code.in_([c.inn for c in DEMO_CLIENTS])
+SEED_USER = (AppUser.company_id.is_(None)) | AppUser.company_id.in_(
+    select(Company.company_id).where(SEED_COMPANY)
+)
 
 
 def counts(db: Session) -> dict[str, int]:
     return {
-        model.__tablename__: db.scalar(select(func.count()).select_from(model))
-        for model in (DimUserRole, DimApplicationStatus, DimCreditProduct, Company, AppUser)
+        model.__tablename__: db.scalar(select(func.count()).select_from(model).where(*where))
+        for model, where in (
+            (DimUserRole, ()),
+            (DimApplicationStatus, ()),
+            (DimCreditProduct, ()),
+            (Company, (SEED_COMPANY,)),
+            (AppUser, (SEED_USER,)),
+        )
     }
 
 
@@ -34,7 +47,7 @@ def test_seed_content(db: Session):
         s.value for s in ApplicationStatus
     }
 
-    logins = {u.login_code: u for u in db.scalars(select(AppUser))}
+    logins = {u.login_code: u for u in db.scalars(select(AppUser).where(SEED_USER))}
     assert set(logins) == {
         "client_fast",
         "client_counter",
@@ -63,8 +76,8 @@ def test_seed_is_idempotent_and_does_not_touch_existing_accounts(db: Session):
 
 
 def test_demo_company_inns_are_stable_and_valid(db: Session):
-    inns = {c.legal_form_code: [] for c in db.scalars(select(Company))}
-    for c in db.scalars(select(Company).order_by(Company.company_id)):
+    inns = {c.legal_form_code: [] for c in db.scalars(select(Company).where(SEED_COMPANY))}
+    for c in db.scalars(select(Company).where(SEED_COMPANY).order_by(Company.company_id)):
         inns[c.legal_form_code].append(c.inn_code)
     assert inns["IP"] == ["770100000001"]
     assert inns["OOO"] == ["7701000002", "7701000003", "7701000004", "7701000005", "7701000006"]
