@@ -11,6 +11,7 @@ from app.schemas.underwriter import (
     AuditEntryOut,
     DecisionRequest,
     QueueOut,
+    RecheckRequest,
     UnderwriterApplicationOut,
 )
 from app.services import underwriter as service
@@ -83,3 +84,17 @@ def makeUnderwriterDecision(
     для `COUNTER_OFFER` обязателен `offerAmount`, для `NEEDS_INFO` — `infoRequest`.
     Допустимо только для заявок в `MANUAL_REVIEW`, иначе 409 `INVALID_TRANSITION`."""
     return service.make_decision(session, user, application_id, body)
+
+
+@router.post(
+    "/applications/{application_id}/recheck",
+    response_model=ApplicationOut,
+    summary="Повторно проверить внешние источники",
+    responses={**R401, **R403, **R404, **R409, **R422},
+)
+def recheckUnderwriterApplication(
+    application_id: ApplicationId, body: RecheckRequest, user: UnderwriterUser, session: DbSession
+) -> ApplicationOut:
+    """`MANUAL_REVIEW → EXTERNAL_CHECK`, конвейер запускается заново: новые записи `external_check` и новое
+    автоматическое решение со снимком. Комментарий обязателен и попадает в аудит. В другом статусе — 409."""
+    return service.recheck(session, user, application_id, body)

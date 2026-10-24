@@ -980,6 +980,70 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  /api/v1/underwriter/applications/{application_id}/recheck:
+    post:
+      tags:
+      - underwriter
+      summary: Повторно проверить внешние источники
+      description: '`MANUAL_REVIEW → EXTERNAL_CHECK`, конвейер запускается заново: новые записи `external_check` и новое
+
+        автоматическое решение со снимком. Комментарий обязателен и попадает в аудит. В другом статусе — 409.'
+      operationId: recheckUnderwriterApplication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Идентификатор заявки
+          title: Application Id
+        description: Идентификатор заявки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecheckRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нет токена, он недействителен или истёк
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Роль пользователя не позволяет это действие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено. Для клиента заявка другой компании тоже отдаёт 404
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: 'Ошибка валидации: `errors[]` указывает на поля'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
   /api/v1/applications/{application_id}/audit:
     get:
       tags:
@@ -2525,6 +2589,20 @@ components:
       - total
       title: RateBreakdownOut
       description: 'Разложение ставки: ключевая ставка ЦБ + спред продукта + риск-надбавка.'
+    RecheckRequest:
+      properties:
+        comment:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Comment
+          description: Зачем нужна повторная проверка (обязателен, пишется в аудит)
+      type: object
+      required:
+      - comment
+      title: RecheckRequest
+      examples:
+      - comment: БКИ был недоступен, повторяем
     SignRequest:
       properties:
         code:

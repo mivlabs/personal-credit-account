@@ -255,7 +255,7 @@ def application_out(session: Session, app: LoanApplication, role: str = "CLIENT"
             S.SIGNING: ["sign"],
         }.get(status, [])
         if role == "CLIENT"
-        else (["decide"] if status == S.MANUAL_REVIEW else [])
+        else (["decide", "recheck"] if status == S.MANUAL_REVIEW else [])
     )
     return ApplicationOut(
         available_actions=actions,

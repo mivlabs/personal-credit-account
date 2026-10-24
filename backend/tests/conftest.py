@@ -154,3 +154,16 @@ def legacy_manual_integrations(request, monkeypatch):
     monkeypatch.setattr(
         "app.domain.pipeline.get_external_checks_client", lambda session=None: NoopExternalChecks()
     )
+
+
+@pytest.fixture
+def external(monkeypatch):
+    """Подменяет внешние проверки конвейера фейком: external(payloads, failing=("BKI",))."""
+    from tests.fakes import FakeChecks
+
+    def use(payloads, failing=()):
+        monkeypatch.setattr(FakeChecks, "payloads", payloads)
+        monkeypatch.setattr(FakeChecks, "failing", frozenset(failing))
+        monkeypatch.setattr("app.domain.pipeline.get_external_checks_client", FakeChecks)
+
+    return use

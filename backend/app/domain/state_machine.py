@@ -74,6 +74,12 @@ TRANSITIONS: tuple[Transition, ...] = (
         "Решение андеррайтера с комментарием и списком полей",
     ),
     Transition(S.MANUAL_REVIEW, S.REJECTED, Actor.UNDERWRITER, "Решение андеррайтера с комментарием"),
+    Transition(
+        S.MANUAL_REVIEW,
+        S.EXTERNAL_CHECK,
+        Actor.UNDERWRITER,
+        "Андеррайтер запросил повторную проверку источников с комментарием",
+    ),
     Transition(S.APPROVED, S.OFFER_ACCEPTED, Actor.CLIENT, "Клиент принял оффер"),
     Transition(S.APPROVED, S.DECLINED_BY_CLIENT, Actor.CLIENT, "Клиент отказался от оффера"),
     Transition(S.COUNTER_OFFER, S.OFFER_ACCEPTED, Actor.CLIENT, "Клиент принял встречное предложение"),

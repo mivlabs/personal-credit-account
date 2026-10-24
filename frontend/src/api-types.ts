@@ -340,6 +340,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/underwriter/applications/{application_id}/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Повторно проверить внешние источники
+         * @description `MANUAL_REVIEW → EXTERNAL_CHECK`, конвейер запускается заново: новые записи `external_check` и новое
+         *     автоматическое решение со снимком. Комментарий обязателен и попадает в аудит. В другом статусе — 409.
+         */
+        post: operations["recheckUnderwriterApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/applications/{application_id}/audit": {
         parameters: {
             query?: never;
@@ -1400,6 +1421,19 @@ export interface components {
              * @description Итоговая ставка, % годовых
              */
             total: number;
+        };
+        /**
+         * RecheckRequest
+         * @example {
+         *       "comment": "БКИ был недоступен, повторяем"
+         *     }
+         */
+        RecheckRequest: {
+            /**
+             * Comment
+             * @description Зачем нужна повторная проверка (обязателен, пишется в аудит)
+             */
+            comment: string;
         };
         /**
          * SignRequest
@@ -2508,6 +2542,78 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationOut"];
+                };
+            };
+            /** @description Нет токена, он недействителен или истёк */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Роль пользователя не позволяет это действие */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Не найдено. Для клиента заявка другой компании тоже отдаёт 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Действие недопустимо в текущем статусе заявки или конфликт ключа идемпотентности */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Ошибка валидации: `errors[]` указывает на поля */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    recheckUnderwriterApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Идентификатор заявки */
+                application_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecheckRequest"];
             };
         };
         responses: {

@@ -43,6 +43,7 @@
 | `MANUAL_REVIEW` | `COUNTER_OFFER` | Андеррайтер | Решение андеррайтера с комментарием и новой суммой |
 | `MANUAL_REVIEW` | `NEEDS_INFO` | Андеррайтер | Решение андеррайтера с комментарием и списком полей |
 | `MANUAL_REVIEW` | `REJECTED` | Андеррайтер | Решение андеррайтера с комментарием |
+| `MANUAL_REVIEW` | `EXTERNAL_CHECK` | Андеррайтер | Андеррайтер запросил повторную проверку источников с комментарием |
 | `APPROVED` | `OFFER_ACCEPTED` | Клиент | Клиент принял оффер |
 | `APPROVED` | `DECLINED_BY_CLIENT` | Клиент | Клиент отказался от оффера |
 | `COUNTER_OFFER` | `OFFER_ACCEPTED` | Клиент | Клиент принял встречное предложение |
@@ -70,6 +71,7 @@ stateDiagram-v2
     MANUAL_REVIEW --> COUNTER_OFFER: Андеррайтер
     MANUAL_REVIEW --> NEEDS_INFO: Андеррайтер
     MANUAL_REVIEW --> REJECTED: Андеррайтер
+    MANUAL_REVIEW --> EXTERNAL_CHECK: Андеррайтер
     APPROVED --> OFFER_ACCEPTED: Клиент
     APPROVED --> DECLINED_BY_CLIENT: Клиент
     COUNTER_OFFER --> OFFER_ACCEPTED: Клиент

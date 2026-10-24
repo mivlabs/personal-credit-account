@@ -99,3 +99,21 @@ def test_concurrent_submission_creates_one_decision_and_check_set(client, fast, 
         )
         == 1
     )
+
+
+def test_real_wiremock_client_timeout_recheck_creates_new_checks(client, underwriter):
+    headers = login_headers(client, "client_timeout")
+    flow = Flow(client, headers)
+    draft = flow.draft(requestedAmount=1500000, termMonths=12, purpose="Demo")
+    assert flow.submit(draft["id"]).status_code == 202
+    assert flow.get(draft["id"])["status"] == "MANUAL_REVIEW"
+    before = client.get(f"/api/v1/underwriter/applications/{draft['id']}", headers=underwriter).json()
+    r = client.post(
+        f"/api/v1/underwriter/applications/{draft['id']}/recheck",
+        headers=underwriter,
+        json={"comment": "Повторная проверка БКИ"},
+    )
+    assert r.status_code == 200 and r.json()["status"] == "MANUAL_REVIEW"  # БКИ по-прежнему отвечает 503
+    after = client.get(f"/api/v1/underwriter/applications/{draft['id']}", headers=underwriter).json()
+    assert len(after["externalChecks"]) > len(before["externalChecks"])
+    assert len(after["decisions"]) == len(before["decisions"]) + 1

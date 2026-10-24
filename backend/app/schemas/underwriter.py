@@ -103,6 +103,14 @@ class UnderwriterApplicationOut(ApiModel):
     )
 
 
+class RecheckRequest(ApiModel):
+    comment: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=4000)] = Field(
+        description="Зачем нужна повторная проверка (обязателен, пишется в аудит)"
+    )
+
+    model_config = ConfigDict(json_schema_extra={"examples": [{"comment": "БКИ был недоступен, повторяем"}]})
+
+
 class InfoRequestInput(ApiModel):
     description: str = Field(
         min_length=1, max_length=2000, description="Что нужно дозаполнить, простым языком"

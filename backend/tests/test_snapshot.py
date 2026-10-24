@@ -2,81 +2,16 @@
 
 import importlib.util
 import json
-from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import select, text
 
-from app.db.models import CreditDecision, ExternalCheck
-from app.domain.enums import CheckSource, CheckStatus
-from app.integrations.base import ExternalData, SourceResult
-from tests.conftest import BACKEND_DIR, Flow
+from app.db.models import CreditDecision
+from tests.conftest import BACKEND_DIR
+from tests.fakes import BORDERLINE, BORDERLINE_LIMIT, GOOD, screen, submit
 
 DECISION = "/api/v1/underwriter/applications/{}/decision"
 SECRET = "СЕКРЕТНЫЙ-ВНУТРЕННИЙ-КОММЕНТАРИЙ"
-
-
-def egrul(registered="2016-03-14", industry="services"):
-    return {"active": True, "registrationDate": registered, "industry": industry}
-
-
-GOOD = {"EGRUL": egrul(), "FNS": {"annualRevenue": "12000000"}, "BKI": {"debtAmount": "0", "overdueDays": 0}}
-# балл 50 (ручная проверка), лимит 0
-BORDERLINE = {
-    "EGRUL": egrul("2026-01-23", "construction"),
-    "FNS": {"annualRevenue": "6000000"},
-    "BKI": {"debtAmount": "3000000", "overdueDays": 30},
-}
-# балл 50 (ручная проверка), лимит 3 млн
-BORDERLINE_LIMIT = {
-    "EGRUL": egrul("2026-01-23", "other"),
-    "FNS": {"annualRevenue": "12000000"},
-    "BKI": {"debtAmount": "3000000", "overdueDays": 60},
-}
-
-
-class FakeChecks:
-    payloads: dict = GOOD
-
-    def __init__(self, session=None):
-        self.session = session
-
-    def fetch_all(self, application_id, company):
-        results = {}
-        for source in CheckSource:
-            data = self.payloads[source.value]
-            now = datetime.now(UTC)
-            self.session.add(
-                ExternalCheck(
-                    application_id=application_id,
-                    source_code=source.value,
-                    check_status_code=CheckStatus.OK.value,
-                    response_cval=json.dumps(data),
-                    request_dttm=now,
-                    response_dttm=now,
-                )
-            )
-            results[source] = SourceResult(source, CheckStatus.OK, data)
-        return ExternalData(results)
-
-
-@pytest.fixture
-def external(monkeypatch):
-    def use(payloads):
-        monkeypatch.setattr(FakeChecks, "payloads", payloads)
-        monkeypatch.setattr("app.domain.pipeline.get_external_checks_client", FakeChecks)
-
-    return use
-
-
-def submit(flow: Flow, amount=3_000_000, **extra) -> dict:
-    draft = flow.draft(requestedAmount=amount, termMonths=12, purpose="Тест", **extra)
-    assert flow.submit(draft["id"]).status_code == 202
-    return flow.get(draft["id"])
-
-
-def screen(client, underwriter, app_id) -> dict:
-    return client.get(f"/api/v1/underwriter/applications/{app_id}", headers=underwriter).json()
 
 
 SCENARIOS = {

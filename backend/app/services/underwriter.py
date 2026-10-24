@@ -28,7 +28,9 @@ from app.domain.enums import (
     DecisionType,
     ManualOutcome,
 )
+from app.domain.pipeline import process_pipeline
 from app.domain.pricing import compute_rate
+from app.domain.state_machine import Actor, transition
 from app.schemas.application import ApplicationOut
 from app.schemas.underwriter import (
     AuditEntryOut,
@@ -38,6 +40,7 @@ from app.schemas.underwriter import (
     ExternalCheckOut,
     QueueItem,
     QueueOut,
+    RecheckRequest,
     UnderwriterApplicationOut,
 )
 from app.services.access import load_application
@@ -334,6 +337,27 @@ def make_decision(
         info_request=info,
         audit_comment=audit_comment,
     )
+    session.commit()
+    return application_out(session, app, user.role.value)
+
+
+def recheck(session: Session, user: AuthUser, application_id: int, body: RecheckRequest) -> ApplicationOut:
+    """MANUAL_REVIEW → EXTERNAL_CHECK и конвейер заново: новые external_check и новое AUTO-решение."""
+    app = load_application(session, application_id, user, lock=True)
+    if app.status_code != S.MANUAL_REVIEW.value:
+        raise InvalidTransitionError(
+            f"Повторная проверка возможна в статусе «{STATUS_NAMES[S.MANUAL_REVIEW]}», "
+            f"сейчас: «{status_name(app.status_code)}»"
+        )
+    transition(
+        session,
+        app,
+        S.EXTERNAL_CHECK,
+        user.id,
+        f"Повторная проверка источников: {body.comment}",
+        actor=Actor.UNDERWRITER,
+    )
+    process_pipeline(session, app)
     session.commit()
     return application_out(session, app, user.role.value)
 
