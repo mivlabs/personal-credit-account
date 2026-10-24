@@ -1,18 +1,18 @@
 # Фактически выполненные проверки
 
-Дата: 2026-10-24, локальный стенд Windows / Docker Desktop, часовой пояс Europe/Moscow.
+Дата: 2026-10-24 (перепроверено после сессии 3 на чистом стенде `docker compose down -v && up --build -d`), локальный стенд Windows / Docker Desktop, часовой пояс Europe/Moscow.
 
 | Проверка | Результат |
 |---|---|
 | docker compose up --build -d api web | Образы собраны; web, api, db и mocks healthy |
 | Backend frozen install в образах | uv sync --frozen для runtime и dev выполнен |
 | Frontend установка по lock | npm install сформировал package-lock.json; Docker npm ci прошёл |
-| docker compose --profile test run --build --rm tests | 107 passed, PostgreSQL + настоящий WireMock |
+| docker compose --profile test run --build --rm tests | 199 passed (54 unit + 145 integration), PostgreSQL + настоящий WireMock |
 | ruff check . из backend | Все проверки прошли |
-| ruff format --check . из backend | 83 Python-файла соответствуют формату |
+| ruff format --check . из backend | 106 Python-файлов соответствуют формату |
 | npm run generate:api | Типы сгенерированы из экспортированного OpenAPI |
 | npm run typecheck / production build | Прошли локально и в Docker |
-| npm run test:e2e | 4 passed, Google Chrome, реальный Nginx/API/PostgreSQL/WireMock |
+| npm run test:e2e | 4 passed, Google Chrome, реальный Nginx/API/PostgreSQL/WireMock (в сценарий ручного решения добавлено подтверждение «выше расчётного лимита» после п.1.3) |
 | python -m app.scripts.smoke | Все проверки API, таймлайна, аудита и изоляции ролей прошли |
 | python scripts/check-persistence.py | Заявка, оффер и полный аудит сохранились после рестарта четырёх контейнеров и повторного seed |
 | git diff --check | Ошибок пробелов нет |
@@ -52,3 +52,26 @@ Backend покрывает пороги 39/40/69/70, стоп-факторы и 
 | 2.5 Подбор продукта | `domain/recommendation.yaml` + pydantic-валидация, `POST /products/recommendations` (`matchScore`, `recommended`, `reasons`, `rateFrom`), каталог на фронте вызывает эндпоинт и показывает причины | `domain/recommendation.py`, `services/catalog.py`, `api/routers/products.py`, `frontend/src/Catalog.tsx` | `test_recommendation.py` (7 категорий, сумма/срок вне диапазона, 401/403/422) | `test_openapi` дополнен тремя новыми эндпоинтами намеренно |
 
 Для следующей сессии: статусы `WITHDRAWN` и `EXPIRED` (конечные); `app.core.clock.now()` вместо `datetime.now` в бизнес-коде; `services/expiry.ensure_not_expired` и `expire_all_stale`; действия `RECHECK`, `WITHDRAW`; `ErrorCode.EXPIRED`; `PurposeCategory`; фикстура `travel(days)` в `tests/conftest.py`; миграция 0004 — следующая свободная 0005. Не-бизнес-вызовы `datetime.now` остались в `core/security.py` (JWT) и `integrations/http.py` (логи вызовов).
+
+## Аудит P1/P2: сессия 3
+
+Проверка (2026-10-24, чистый стенд `docker compose down -v && docker compose up --build -d`, все четыре сервиса healthy): `ruff check`/`ruff format --check` чисто; `docker compose --profile test run --build --rm tests` — 199 passed; `uv run pytest tests/unit` — 54 passed без Postgres и WireMock; `npm run typecheck` и `npm run build` прошли; `python -m app.scripts.smoke` — «всё в порядке» (на Windows запускать с `PYTHONIOENCODING=utf-8`, иначе вывод кириллицы падает в cp1251); `npm run test:e2e` — 4 passed; `scripts/check-persistence.py` — PASS. Перезапуск api сохранил JWT-секрет с volume `jwtdata`: токен, выданный до рестарта, остался действительным. Проверка не выполнялась в Docker-контексте для `docker compose build web` с холодным кешем сверх уже пройденной сборки.
+
+| Пункт | Что сделано | Ключевые файлы | Тесты | Не сделано / примечание |
+|---|---|---|---|---|
+| 3.1 Параллельные проверки | ЕГРЮЛ/ФНС/БКИ в `ThreadPoolExecutor`, общий бюджет `EXTERNAL_CHECKS_BUDGET_SECONDS` (3 с), ретраи внутри бюджета; записи `external_check` создаются в основной сессии; стаб ИНН `7701000099` (БКИ с задержкой 2 с); `client_timeout` в документации = «БКИ недоступен (503)» | `integrations/http.py`, `core/config.py`, `mocks/wiremock/mappings/*-7701000099.json`, `docs/test-accounts.md` | `test_slow_source_is_timeout_within_budget`, `test_sources_are_polled_in_parallel` | HTTP-вызовы остались внутри транзакции под блокировкой строки (вынос потребовал бы переделки атомарной подачи): описано в `assumptions.md` |
+| 3.2 Безопасность | JWT-секрет: пустой/демо/короче 32 → случайный в `/app/data/jwt_secret` (volume `jwtdata`); лимит входа 5 неудач/5 мин на логин+IP → 429 `TOO_MANY_REQUESTS` + `Retry-After`; `signHint` только при `DEMO_MODE=true` | `core/security.py`, `services/auth.py`, `core/errors.py`, `docker-compose.yml`, `backend/Dockerfile`, `.env.example` | `test_token_signed_with_old_demo_secret_is_rejected`, `test_weak_secret_is_replaced_and_persisted`, `test_login_rate_limit_and_reset`, `test_successful_login_resets_failure_counter`, `test_sign_hint_only_in_demo_mode` | Лимитер в памяти одного процесса (в `assumptions.md`) |
+| 3.3 Тесты | `tests/unit` (без инфраструктуры) и `tests/integration`; проверка `MOCKS_BASE_URL/__admin/health` и Postgres перед интеграционной сессией, иначе `pytest.exit(returncode=2)` с подсказкой | `tests/conftest.py`, `tests/integration/conftest.py`, `tests/unit/*` | 54 unit + 145 integration | На Windows в `DATABASE_URL`/`MOCKS_BASE_URL` нужен `127.0.0.1`, а не `localhost` (иначе таймаут IPv6 на каждое подключение, прогон 265 с вместо 5 с): отмечено в README |
+| 3.4 Уборка | Внутренние материалы вынесены в `../_internal/`, убраны из индекса; артефакты проектирования в `docs/design/`; `data-model-conceptual.png`; ссылки поправлены, битых относительных ссылок в markdown нет | `docs/design/*`, `README.md`, `docs/architecture.md`, `docs/data-model.md`, `docs/source/README.md` | скрипт проверки ссылок | — |
+| 3.5 Образы | `node:22.23.4-alpine3.24`, `nginx:1.30.6-alpine3.24` (наличие тегов проверено `docker manifest inspect`) | `frontend/Dockerfile` | `docker compose build web`, web healthy | Версий этих образов нет в `export-notices.py` и `third-party-inventory.json`, обновлять нечего |
+| Прочее | Исправлен e2e «Ручное решение»: после п.1.3 нужна отметка «выше расчётного лимита» | `frontend/e2e/credit.spec.ts` | `npm run test:e2e` 4 passed | — |
+
+Для следующей сессии: `HttpExternalChecks._call` (только HTTP, возвращает попытки) и `_record` (запись в сессию); `Settings.external_checks_budget_seconds`, `demo_mode`, `login_max_failures`, `login_window_seconds`, `jwt_secret_file`; `core.security.get_jwt_secret()`; `ErrorCode.TOO_MANY_REQUESTS`; `services.auth.reset_login_limiter()`; `AcceptOfferResponse.signHint` теперь необязателен; тестовые хелперы (`Flow`, `fakes`) живут в `tests/integration/`.
+
+## Сводка по трём сессиям
+
+| Сессия | Содержание | Коммиты |
+|---|---|---|
+| 1 | Единая ставка, возраст от `AS_OF_DATE`, снимок решения, переопределение лимита, приоритет источников | 9e6775c, d70ebfd, 43b5d30, a6a5861, 8ff7384 |
+| 2 | Мёртвый переход, recheck, `WITHDRAWN`, сроки и `EXPIRED`, подбор продукта | ed26341, f5b57e2, 227ac6e, 0a05809, bd02c5f |
+| 3 | Параллельные проверки, безопасность, unit/integration, уборка репозитория, закреплённые образы | ab6875f, b36f557, aa4fb43, b5135f3, e5a91c3 |

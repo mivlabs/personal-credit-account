@@ -45,6 +45,7 @@ test('Ручное решение со сменой аккаунта',async({pag
  await page.getByRole('button',{name:/Выйти$/}).click();await login(page,'underwriter');
  await page.goto('/bank/'+id);
  await page.getByLabel('Внутренний комментарий',{exact:true}).fill('Выручка подтверждена для учебного сценария');
+ await page.getByLabel('Решение выше расчётного лимита (подтверждаю)').check();
  await page.getByRole('button',{name:'Зафиксировать решение',exact:true}).click();
  await expect(page.getByText('Решение уже зафиксировано',{exact:true})).toBeVisible();
  await page.screenshot({path:'test-results/bank-decision.png',fullPage:true});
