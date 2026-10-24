@@ -7,7 +7,12 @@ from decimal import ROUND_DOWN, Decimal
 from app.domain.clock import age_in_months, as_of_date
 from app.domain.decision.config import DecisionConfig
 from app.domain.enums import ApplicationField, CheckSource, DecisionOutcome
+from app.domain.offers import monthly_payment, principal_for_payment
+from app.domain.pricing import compute_rate
 from app.integrations.base import ExternalData
+
+DEFAULT_TERM_MONTHS = 12  # срок для расчёта лимита, если в заявке он не указан
+CENT = Decimal("0.01")
 
 
 @dataclass(frozen=True)
@@ -36,6 +41,7 @@ class DecisionResult:
     limit: Decimal | None = None
     rule_code: str = ""
     inputs: dict = field(default_factory=dict)
+    limit_detail: "LimitCalc | None" = None
 
 
 @dataclass(frozen=True)
@@ -56,6 +62,8 @@ class DecisionInput:
     revenue_source: Decimal | None = None
     debt_source: Decimal | None = None
     revenue_declared_only: bool = False
+    product_code: str = "WORKING_CAPITAL"
+    term_months: int = DEFAULT_TERM_MONTHS
 
 
 DATA_MISMATCH_EXPLANATION = (
@@ -71,6 +79,70 @@ def diverges(client: Decimal, source: Decimal, threshold_pct: Decimal) -> bool:
 
 def band_points(value, bands) -> int:
     return next((points for upper, points in bands if value <= upper), bands[-1][1])
+
+
+@dataclass(frozen=True)
+class LimitCalc:
+    """Лимит и все ограничения, из которых он получен (попадает в снимок решения)."""
+
+    value: Decimal
+    binding: str  # PAYMENT_LOAD | OVERDRAFT_TURNOVER | REVENUE_SHARE | PRODUCT_MAX
+    term_months: int
+    rate_pct: Decimal
+    monthly_revenue: Decimal
+    debt_payment: Decimal  # оценка ежемесячных платежей по текущему долгу
+    max_payment: Decimal  # допустимый платёж по новому кредиту (может быть отрицательным)
+    schedule_limit: Decimal | None  # по платёжной нагрузке (кредиты с графиком)
+    turnover_limit: Decimal | None  # по обороту (овердрафт)
+    share_limit: Decimal  # по доле выручки за вычетом долга
+    product_max: Decimal
+    payment_load: Decimal | None  # доля платежей от выручки при запрошенной сумме
+    declared_factor: Decimal | None  # коэффициент для выручки со слов клиента
+
+
+def compute_limit(data: DecisionInput, score: int, config: DecisionConfig) -> LimitCalc:
+    """Лимит = минимум ограничений: платёжная нагрузка (или оборот для овердрафта), доля выручки, максимум продукта."""
+    is_overdraft = data.product_code == "OVERDRAFT"
+    term = data.term_months
+    rate = compute_rate(data.product_code, score, config).total
+    monthly_revenue = data.revenue / 12
+    debt_payment = data.debt * config.debt_service_monthly_share
+    max_payment = monthly_revenue * config.max_payment_load - debt_payment
+    share_limit = data.revenue * config.revenue_limit_share - data.debt * config.debt_limit_share
+    schedule_limit = turnover_limit = None
+    if is_overdraft:
+        turnover_limit = monthly_revenue * config.overdraft_turnover_share
+        primary, primary_code = turnover_limit, "OVERDRAFT_TURNOVER"
+    else:
+        schedule_limit = principal_for_payment(max(max_payment, Decimal(0)), rate, term)
+        primary, primary_code = schedule_limit, "PAYMENT_LOAD"
+    candidates = [
+        (max(Decimal(0), primary), primary_code),
+        (max(Decimal(0), share_limit), "REVENUE_SHARE"),
+        (data.product_max, "PRODUCT_MAX"),
+    ]
+    value, binding = min(candidates, key=lambda c: c[0])  # при равенстве срабатывает первое в списке
+    declared_factor = config.client_declared_limit_factor if data.revenue_declared_only else None
+    if declared_factor is not None:
+        value *= declared_factor
+    payment_load = None
+    if not is_overdraft and monthly_revenue > 0:
+        payment_load = (debt_payment + monthly_payment(data.requested, rate, term)) / monthly_revenue
+    return LimitCalc(
+        value=value.quantize(CENT, rounding=ROUND_DOWN),
+        binding=binding,
+        term_months=term,
+        rate_pct=rate,
+        monthly_revenue=monthly_revenue,
+        debt_payment=debt_payment,
+        max_payment=max_payment,
+        schedule_limit=schedule_limit,
+        turnover_limit=turnover_limit,
+        share_limit=share_limit,
+        product_max=data.product_max,
+        payment_load=payment_load,
+        declared_factor=declared_factor,
+    )
 
 
 def apply_policy(
@@ -170,21 +242,14 @@ def evaluate(data: DecisionInput, config: DecisionConfig) -> DecisionResult:
     }
     factors = [FactorResult(f.code, f.value, f.points, explanations[f.code]) for f in factors]
     score = sum(f.points for f in factors)
-    limit = max(
-        Decimal(0),
-        min(
-            data.product_max, data.revenue * config.revenue_limit_share - data.debt * config.debt_limit_share
-        ),
-    )
-    if data.revenue_declared_only:
-        limit *= config.client_declared_limit_factor
-    limit = limit.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+    calc = compute_limit(data, score, config)
+    limit = calc.value
     outcome, rule = apply_policy(score, data.requested, limit, data.product_min, config)
     reasons = {
         "LOW_SCORE": "Финансовые показатели и кредитная история пока не позволяют одобрить кредит",
         "BORDERLINE_SCORE": "Для оценки заявки требуется решение специалиста банка",
         "LIMIT_BELOW_MINIMUM": "Доступная сумма ниже минимальной суммы этого продукта",
-        "ABOVE_LIMIT": "Предлагаем меньшую сумму с учётом годовой выручки и текущего долга",
+        "ABOVE_LIMIT": "Предлагаем меньшую сумму с учётом выручки, текущего долга и платёжной нагрузки",
         "WITHIN_LIMIT": "Выручка, долговая нагрузка и кредитная история позволяют одобрить запрошенную сумму",
     }
     return DecisionResult(
@@ -196,6 +261,7 @@ def evaluate(data: DecisionInput, config: DecisionConfig) -> DecisionResult:
         note=f"{rule}; балл {score}; доступная сумма {limit} ₽",
         limit=limit,
         rule_code=rule,
+        limit_detail=calc,
     )
 
 
@@ -269,6 +335,8 @@ def decide(
             revenue_source=revenue_source,
             debt_source=debt_source,
             revenue_declared_only=revenue_source is None and application.revenue_amt is not None,
+            product_code=application.product.product_code,
+            term_months=application.term_qnt or DEFAULT_TERM_MONTHS,
         ),
         config,
     )

@@ -2159,11 +2159,32 @@ components:
             type: string
           type: object
           title: Components
+        binding:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Binding
+          description: 'Сработавшее ограничение: PAYMENT_LOAD, OVERDRAFT_TURNOVER, REVENUE_SHARE или PRODUCT_MAX'
+        paymentLoad:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Paymentload
+          description: Доля платежей (текущих и по новому кредиту) от месячной выручки при запрошенной сумме
+        maxPaymentLoad:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Maxpaymentload
+          description: Допустимая доля платежей от месячной выручки
       type: object
       required:
       - value
       - text
       - components
+      - binding
+      - paymentLoad
+      - maxPaymentLoad
       title: ExplainedLimit
     ExternalCheckOut:
       properties:
@@ -2651,8 +2672,8 @@ components:
         rate: 16.5
         rateBreakdown:
           keyRate: 14.0
-          keyRateDate: '2026-09-11'
-          keyRateSource: Банк России, решение Совета директоров от 11.09.2026
+          keyRateDate: '2026-10-23'
+          keyRateSource: Банк России, решение Совета директоров от 23.10.2026 (ставка сохранена на уровне 14%)
           productSpread: 2.5
           riskSurcharge: 0.0
           total: 16.5

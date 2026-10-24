@@ -7,7 +7,22 @@ from app.domain.decision.config import DecisionConfig
 from app.domain.decision.engine import DecisionResult
 from app.domain.pricing import RateBreakdown
 
-LIMIT_FORMULA = "min(максимум продукта; годовая выручка × доля выручки − долг × доля долга), не меньше 0"
+LIMIT_FORMULA_SCHEDULE = (
+    "min(тело аннуитета для допустимого платежа при запрошенном сроке; "
+    "годовая выручка × доля выручки − долг × доля долга; максимум продукта), не меньше 0; "
+    "допустимый платёж = месячная выручка × предельная нагрузка − оценка платежей по текущему долгу"
+)
+LIMIT_FORMULA_OVERDRAFT = (
+    "min(месячная выручка × доля оборота; "
+    "годовая выручка × доля выручки − долг × доля долга; максимум продукта), не меньше 0"
+)
+
+BINDING_TEXTS = {
+    "PAYMENT_LOAD": "платёжной нагрузкой",
+    "OVERDRAFT_TURNOVER": "оборотом по овердрафту",
+    "REVENUE_SHARE": "долей годовой выручки за вычетом долга",
+    "PRODUCT_MAX": "максимальной суммой продукта",
+}
 
 FACTOR_LABELS = {
     "AGE_MONTHS": "Срок деятельности компании",
@@ -66,21 +81,42 @@ def factor_max_points(code: str, config: DecisionConfig) -> int:
 
 
 def _limit_block(result: DecisionResult, config: DecisionConfig, product_max: Decimal) -> dict | None:
-    if result.limit is None:
+    calc = result.limit_detail
+    if result.limit is None or calc is None:
         return None
     revenue = Decimal(result.inputs["annualRevenue"]["value"])
     debt = Decimal(result.inputs["debtAmount"]["value"])
     components = {
         "revenueShare": str(revenue * config.revenue_limit_share),
         "debtShare": str(debt * config.debt_limit_share),
+        "shareLimit": str(calc.share_limit),
         "productMax": str(product_max),
+        "termMonths": str(calc.term_months),
+        "rate": str(calc.rate_pct),
+        "monthlyRevenue": str(calc.monthly_revenue.quantize(Decimal("0.01"))),
+        "debtPayment": str(calc.debt_payment.quantize(Decimal("0.01"))),
     }
-    formula = LIMIT_FORMULA
-    if result.inputs["annualRevenue"]["source"] == "CLIENT":
+    if calc.turnover_limit is not None:
+        formula = LIMIT_FORMULA_OVERDRAFT
+        components["turnoverLimit"] = str(calc.turnover_limit.quantize(Decimal("0.01")))
+    else:
+        formula = LIMIT_FORMULA_SCHEDULE
+        components["maxPayment"] = str(calc.max_payment.quantize(Decimal("0.01")))
+        components["paymentLoadLimit"] = str(calc.schedule_limit)
+    if calc.declared_factor is not None:
         # выручка только со слов клиента: лимит урезается
-        components["clientDeclaredFactor"] = str(config.client_declared_limit_factor)
+        components["clientDeclaredFactor"] = str(calc.declared_factor)
         formula += " × коэффициент для выручки со слов клиента"
-    return {"value": str(result.limit), "formula": formula, "components": components}
+    return {
+        "value": str(result.limit),
+        "formula": formula,
+        "binding": calc.binding,
+        "components": components,
+        "paymentLoad": None
+        if calc.payment_load is None
+        else str(calc.payment_load.quantize(Decimal("0.0001"))),
+        "maxPaymentLoad": None if calc.turnover_limit is not None else str(config.max_payment_load),
+    }
 
 
 def build_auto_snapshot(
@@ -148,6 +184,40 @@ def build_manual_snapshot(
     }
 
 
+def _percent(share: str) -> str:
+    return f"{Decimal(share) * 100:.0f}%"
+
+
+def _limit_text(limit: dict) -> str:
+    c = limit["components"]
+    binding = limit.get("binding")
+    text = (
+        f"Доступная сумма {limit['value']} ₽: не больше {c['productMax']} ₽ (максимум продукта); "
+        f"{c['revenueShare']} ₽ от годовой выручки за вычетом {c['debtShare']} ₽ текущего долга"
+    )
+    if "turnoverLimit" in c:
+        text += f"; не больше {c['turnoverLimit']} ₽ от месячного оборота"
+    elif "paymentLoadLimit" in c:
+        text += (
+            f"; не больше {c['paymentLoadLimit']} ₽ по платёжной нагрузке "
+            f"(срок {c['termMonths']} мес., ставка {c['rate']}%)"
+        )
+    if "clientDeclaredFactor" in c:
+        text += f"; выручка указана вами и не подтверждена ФНС, поэтому лимит умножен на {c['clientDeclaredFactor']}"
+    if binding in BINDING_TEXTS:
+        text += f". Сумма ограничена {BINDING_TEXTS[binding]}"
+    if limit.get("paymentLoad") is not None and limit.get("maxPaymentLoad") is not None:
+        load, max_load = Decimal(limit["paymentLoad"]), Decimal(limit["maxPaymentLoad"])
+        if binding == "PAYMENT_LOAD" or load > max_load:
+            text += (
+                f": при запрошенной сумме платежи заняли бы {_percent(limit['paymentLoad'])} "
+                f"месячной выручки при допустимых {_percent(limit['maxPaymentLoad'])}"
+            )
+        if Decimal(c.get("maxPayment", "0")) < 0:
+            text += "; платежи по текущему долгу уже превышают допустимую нагрузку"
+    return text
+
+
 def _impact(points: int, max_points: int) -> tuple[str, str]:
     if max_points and points / max_points >= 0.6:
         return "STRENGTH", "сильная сторона"
@@ -191,19 +261,13 @@ def explain(snapshot: dict | None, auto_snapshot: dict | None = None) -> dict | 
     limit = base.get("limit")
     limit_out = None
     if limit:
-        c = limit["components"]
         limit_out = {
             "value": limit["value"],
-            "text": (
-                f"Доступная сумма {limit['value']} ₽: не больше {c['productMax']} ₽ (максимум продукта); "
-                f"{c['revenueShare']} ₽ от годовой выручки за вычетом {c['debtShare']} ₽ текущего долга"
-                + (
-                    f"; выручка указана вами и не подтверждена ФНС, поэтому лимит умножен на {c['clientDeclaredFactor']}"
-                    if "clientDeclaredFactor" in c
-                    else ""
-                )
-            ),
-            "components": c,
+            "text": _limit_text(limit),
+            "components": limit["components"],
+            "binding": limit.get("binding"),
+            "paymentLoad": limit.get("paymentLoad"),
+            "maxPaymentLoad": limit.get("maxPaymentLoad"),
         }
     return {
         "ruleCode": snapshot["ruleCode"],

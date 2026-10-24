@@ -59,7 +59,7 @@ class FakeChecks:
 
 
 def submit(flow, amount=3_000_000, **extra) -> dict:
-    draft = flow.draft(requestedAmount=amount, termMonths=12, purpose="Тест", **extra)
+    draft = flow.draft(**{"requestedAmount": amount, "termMonths": 24, "purpose": "Тест", **extra})
     assert flow.submit(draft["id"]).status_code == 202
     return flow.get(draft["id"])
 

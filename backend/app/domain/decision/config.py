@@ -21,6 +21,12 @@ class DecisionConfig(BaseModel):
     max_overdue_days: int = Field(ge=0)
     revenue_limit_share: Decimal = Field(gt=0, le=1)
     debt_limit_share: Decimal = Field(ge=0)
+    # Платёжная нагрузка: доля месячной выручки на платежи (по текущему долгу и по новому кредиту)
+    max_payment_load: Decimal = Field(gt=0, le=1)
+    # Оценка ежемесячных платежей по текущему долгу: доля остатка долга (0,04 ≈ погашение за 25 месяцев)
+    debt_service_monthly_share: Decimal = Field(ge=0, le=1)
+    # Овердрафт: доля среднемесячной выручки (оборота), срок на лимит не влияет
+    overdraft_turnover_share: Decimal = Field(gt=0, le=1)
     age_bands: list[tuple[int, int]]
     revenue_bands: list[tuple[int, int]]
     debt_bands: list[tuple[Decimal, int]]

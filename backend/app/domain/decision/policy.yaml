@@ -6,6 +6,9 @@ min_company_age_months: 6
 max_overdue_days: 90
 revenue_limit_share: '0.50'
 debt_limit_share: '1.00'
+max_payment_load: '0.40'
+debt_service_monthly_share: '0.04'
+overdraft_turnover_share: '0.40'
 age_bands: [[12, 5], [24, 15], [99999, 20]]
 revenue_bands: [[3000000, 5], [10000000, 15], [999999999999999999, 25]]
 debt_bands: [['0.20', 25], ['0.50', 15], ['1.00', 10], ['999999999999999999', 0]]

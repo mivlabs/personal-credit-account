@@ -47,8 +47,17 @@ def test_snapshot_is_written_for_all_five_outcomes(client, underwriter, flow, ex
             for f in snap["factors"]
         )
         assert sum(f["points"] for f in snap["factors"]) == snap["score"]
-        assert set(snap["limit"]) == {"value", "formula", "components"}
-        assert set(snap["limit"]["components"]) == {"revenueShare", "debtShare", "productMax"}
+        assert set(snap["limit"]) == {
+            "value",
+            "formula",
+            "binding",
+            "components",
+            "paymentLoad",
+            "maxPaymentLoad",
+        }
+        assert {"revenueShare", "debtShare", "shareLimit", "productMax", "paymentLoadLimit"} <= set(
+            snap["limit"]["components"]
+        )
     else:
         assert snap["factors"] == [] and snap["limit"] is None
     if outcome in ("APPROVED", "COUNTER_OFFER"):

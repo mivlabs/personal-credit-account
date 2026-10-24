@@ -1031,6 +1031,21 @@ export interface components {
             components: {
                 [key: string]: string;
             };
+            /**
+             * Binding
+             * @description Сработавшее ограничение: PAYMENT_LOAD, OVERDRAFT_TURNOVER, REVENUE_SHARE или PRODUCT_MAX
+             */
+            binding: string | null;
+            /**
+             * Paymentload
+             * @description Доля платежей (текущих и по новому кредиту) от месячной выручки при запрошенной сумме
+             */
+            paymentLoad: string | null;
+            /**
+             * Maxpaymentload
+             * @description Допустимая доля платежей от месячной выручки
+             */
+            maxPaymentLoad: string | null;
         };
         /** ExternalCheckOut */
         ExternalCheckOut: {
@@ -1345,8 +1360,8 @@ export interface components {
          *       "rate": 16.5,
          *       "rateBreakdown": {
          *         "keyRate": 14,
-         *         "keyRateDate": "2026-09-11",
-         *         "keyRateSource": "Банк России, решение Совета директоров от 11.09.2026",
+         *         "keyRateDate": "2026-10-23",
+         *         "keyRateSource": "Банк России, решение Совета директоров от 23.10.2026 (ставка сохранена на уровне 14%)",
          *         "productSpread": 2.5,
          *         "riskSurcharge": 0,
          *         "total": 16.5

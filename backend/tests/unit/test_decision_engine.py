@@ -8,7 +8,7 @@ from app.domain.decision.engine import DecisionInput, apply_policy, evaluate
 from app.domain.enums import DecisionOutcome as O
 
 BASE = DecisionInput(
-    True, 120, D("12000000"), D("0"), 0, "services", D("1500000"), D("300000"), D("10000000")
+    True, 120, D("12000000"), D("0"), 0, "services", D("1500000"), D("300000"), D("10000000"), term_months=24
 )
 
 
@@ -107,7 +107,10 @@ def test_age_is_counted_from_as_of_date_not_policy_snapshot(monkeypatch):
             revenue_amt=None,
             debt_amt=None,
             requested_amt=D("1000000"),
-            product=SimpleNamespace(min_amt=D("300000"), max_amt=D("10000000")),
+            term_qnt=24,
+            product=SimpleNamespace(
+                product_code="WORKING_CAPITAL", min_amt=D("300000"), max_amt=D("10000000")
+            ),
         )
         return decide(app, data, load_decision_config())
 

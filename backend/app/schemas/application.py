@@ -120,6 +120,17 @@ class ExplainedLimit(ApiModel):
     value: str = Field(description="Доступная сумма, ₽")
     text: str = Field(description="Как рассчитана доступная сумма")
     components: dict[str, str]
+    binding: str | None = Field(
+        default=None,
+        description="Сработавшее ограничение: PAYMENT_LOAD, OVERDRAFT_TURNOVER, REVENUE_SHARE или PRODUCT_MAX",
+    )
+    payment_load: str | None = Field(
+        default=None,
+        description="Доля платежей (текущих и по новому кредиту) от месячной выручки при запрошенной сумме",
+    )
+    max_payment_load: str | None = Field(
+        default=None, description="Допустимая доля платежей от месячной выручки"
+    )
 
 
 class DecisionThresholds(ApiModel):
