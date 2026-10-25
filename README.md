@@ -57,7 +57,7 @@
 | Что | Значение |
 |---|---|
 | ПО | Docker Desktop или Docker Engine с Compose v2 (`docker compose version`) |
-| Свободные порты | `3000` (веб), `8000` (API), `8081` (моки), `55432` (PostgreSQL, только `127.0.0.1`). Меняются переменными `WEB_PORT`, `API_PORT`, `MOCKS_PORT`, `DB_HOST_PORT` |
+| Свободные порты | `3000` (веб), `8000` (API), `8081` (моки). Порт PostgreSQL на хост не публикуется. Меняются переменными `WEB_PORT`, `API_PORT`, `MOCKS_PORT` |
 | Память | Замер `docker stats --no-stream` на поднятом стеке в простое (Windows 10, Docker Desktop, 4 ядра, лимит VM 3,8 ГиБ): api ≈ 69 МиБ, db ≈ 41 МиБ, mocks ≈ 135 МиБ, web ≈ 4 МиБ, всего около 250 МиБ. Под нагрузкой больше; сборка образов (Node) требует больше памяти, чем работа стека |
 | Диск | Образы стека: api 316 МБ, web 94 МБ, PostgreSQL 420 МБ, WireMock 462 МБ |
 | Интернет | Нужен только для сборки образов и скачивания зависимостей. После сборки стек работает без сети |
@@ -80,7 +80,7 @@ docker compose up --build
 | Health | <http://localhost:8000/health> | проверка API и БД |
 | API | <http://localhost:8000/api/v1> | FastAPI; контракт: [`docs/api/openapi.yaml`](docs/api/openapi.yaml) |
 | Моки (WireMock) | <http://localhost:8081> | ЕГРЮЛ / ФНС / БКИ, синтетические данные |
-| PostgreSQL | `127.0.0.1:55432` | для отладки, логин и пароль `credit` |
+| PostgreSQL | только внутри сети compose (`db:5432`) | на хост не публикуется; для отладки см. [локальные тесты](#тесты-и-линтер), логин и пароль `credit` |
 
 Сброс данных: `docker compose down -v` (удаляет БД и сохранённый секрет JWT).
 
@@ -333,18 +333,19 @@ Playwright проверяет реальные Docker web/API в Google Chrome. 
 - `tests/integration` — всё остальное, против настоящего PostgreSQL и WireMock. На каждый прогон пересоздаётся отдельная
   БД `credit_test` на сервере из `DATABASE_URL`, миграции накатываются Alembic, затем выполняется настоящий seed.
   Перед стартом проверяются `MOCKS_BASE_URL/__admin/health` и подключение к Postgres; если чего-то нет, pytest
-  завершается с кодом 2 и подсказкой, как поднять (`docker compose up -d db mocks`).
+  завершается с кодом 2 и подсказкой, как поднять (`docker compose -f docker-compose.yml -f docker-compose.override.example.yml up -d db mocks`).
 
 ```bash
 # в Docker (БД поднимается сама)
 docker compose --profile test run --rm tests
 
-# локально (нужен uv и запущенная БД из compose)
+# локально (нужен uv и запущенная БД из compose); порт БД на хост открывает docker-compose.override.example.yml
+# (127.0.0.1:5433, меняется переменной DB_HOST_PORT), в обычном `docker compose up` он не публикуется
+docker compose -f docker-compose.yml -f docker-compose.override.example.yml up -d db mocks
 cd backend
 uv sync
 uv run pytest tests/unit        # без инфраструктуры
-docker compose up -d db mocks   # для интеграционных тестов
-DATABASE_URL=postgresql+psycopg://credit:credit@127.0.0.1:55432/credit MOCKS_BASE_URL=http://127.0.0.1:8081 uv run pytest
+DATABASE_URL=postgresql+psycopg://credit:credit@127.0.0.1:5433/credit MOCKS_BASE_URL=http://127.0.0.1:8081 uv run pytest
 # на Windows указывайте 127.0.0.1, а не localhost: попытка IPv6 (::1) даёт таймаут на каждое подключение
 
 uv run ruff check . && uv run ruff format --check .

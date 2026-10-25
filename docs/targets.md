@@ -13,7 +13,7 @@ API — локальный процесс `uvicorn` (один воркер) на
 Память — `docker stats --no-stream` на поднятом в простое стеке `docker compose up` (4 контейнера). Повторить замер:
 
 ```bash
-docker compose up -d db mocks
+docker compose -f docker-compose.yml -f docker-compose.override.example.yml up -d db mocks
 cd backend && uv run uvicorn app.main:app --port 8010 &   # с DATABASE_URL на отдельную БД и MOCKS_BASE_URL
 python scripts/measure.py --base-url http://127.0.0.1:8010
 ```

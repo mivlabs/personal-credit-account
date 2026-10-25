@@ -38,7 +38,7 @@ def pytest_configure(config):
     from sqlalchemy.exc import OperationalError
 
     hint = (
-        "Как поднять: docker compose up -d db mocks (и DATABASE_URL=postgresql+psycopg://credit:credit@127.0.0.1:55432/credit, "
+        "Как поднять: docker compose -f docker-compose.yml -f docker-compose.override.example.yml up -d db mocks (и DATABASE_URL=postgresql+psycopg://credit:credit@127.0.0.1:5433/credit, "
         "MOCKS_BASE_URL=http://127.0.0.1:8081), либо всё сразу: docker compose --profile test run --rm tests. "
         "Без инфраструктуры работает: uv run pytest tests/unit"
     )
