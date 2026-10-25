@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "generate:api": "openapi-typescript ../docs/api/openapi.yaml -o src/api-types.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "media": "playwright test -c media/playwright.media.config.ts"
   },
   "dependencies": {
     "react": "^19.2.0",
