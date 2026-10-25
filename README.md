@@ -1,12 +1,56 @@
 # Умный кредитный кабинет предпринимателя
 
 [![CI](https://github.com/mivlabs/personal-credit-account/actions/workflows/ci.yml/badge.svg)](https://github.com/mivlabs/personal-credit-account/actions/workflows/ci.yml)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+
+**Кредит для бизнеса без звонков и повторных анкет: подбор продукта, заявка, объяснимое решение и выдача в одном кабинете.**
+
+<p align="center">
+  <img src="docs/media/flow-approve.gif" width="860" alt="Клиент: вход, выбор продукта, заявка, одобрение, подписание кодом, кредит выдан">
+</p>
 
 Прототип кредитного конвейера для малого бизнеса (хакатон Альфа-Банка). Предприниматель (ИП или ООО) подбирает продукт,
 подаёт заявку и видит решение с объяснением: одобрение, контроффер, ручная проверка, запрос данных или отказ.
 Банк ведёт ту же заявку в том же продукте: очередь андеррайтера, ручное решение, аудит.
 Данные о компании приходят из внешних проверок (ЕГРЮЛ, ФНС, БКИ); в прототипе это локальные моки с синтетическими данными.
 Все аккаунты и деньги демонстрационные.
+
+## Как это выглядит
+
+Скриншоты сняты скриптом `npm run media` на синтетических данных (см. [`docs/verification.md`](docs/verification.md#медиа-readme-сессия-7)).
+
+<table>
+  <tr><th colspan="2" align="left">Кабинет клиента</th></tr>
+  <tr>
+    <td width="50%"><img src="docs/media/login.png" width="100%" alt="Экран входа и регистрации по ИНН"><br><sub><b>Вход и регистрация по ИНН.</b> Демо-аккаунты или свой валидный ИНН</sub></td>
+    <td width="50%"><img src="docs/media/catalog.png" width="100%" alt="Каталог продуктов с подбором по цели"><br><sub><b>Каталог.</b> Подбор продукта по цели, ставка = ключевая + спред</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/wizard.png" width="100%" alt="Мастер заявки"><br><sub><b>Мастер заявки.</b> Данные компании уже подтянуты, черновик сохраняется сам</sub></td>
+    <td><img src="docs/media/decision.png" width="100%" alt="Одобрение с оффером и блоком «Как принято решение»"><br><sub><b>Одобрение.</b> Оффер, разложение ставки, блок «Как принято решение»</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/counter-offer.png" width="100%" alt="Контроффер с объяснением лимита по платёжной нагрузке"><br><sub><b>Контроффер.</b> 10 млн запрошено, 6 млн доступно по платёжной нагрузке (срок 24 мес.)</sub></td>
+    <td><img src="docs/media/timeline.png" width="100%" alt="Таймлайн статуса до «Кредит выдан»"><br><sub><b>Путь заявки.</b> От подачи до «Кредит выдан» (симуляция)</sub></td>
+  </tr>
+  <tr><th colspan="2" align="left">Панель банка</th></tr>
+  <tr>
+    <td><img src="docs/media/bank-queue.png" width="100%" alt="Очередь ручной проверки андеррайтера"><br><sub><b>Очередь андеррайтера.</b> Пограничные заявки с баллом и причиной</sub></td>
+    <td><img src="docs/media/bank-review.png" width="100%" alt="Карточка заявки: проверки источников и решение специалиста"><br><sub><b>Карточка заявки.</b> Источники данных, факторы балла, решение с комментарием</sub></td>
+  </tr>
+</table>
+
+<details>
+<summary>Ещё экраны</summary>
+
+<img src="docs/media/bank-snapshot.png" width="640" alt="Снимок решения в карточке заявки"><br>
+<sub><b>Снимок решения.</b> Входы, лимит и формула, по которым считалось решение (хранится вместе с заявкой)</sub>
+
+</details>
 
 ## Требования
 
@@ -76,6 +120,10 @@ docker compose up --build
 | 8 | `7702000082` | 1 млн | отказ: компания не действует |
 | 9 | `7702000090` | 1 млн | БКИ недоступен (503) → ручная проверка |
 
+<p align="center">
+  <img src="docs/media/flow-own-inn.gif" width="720" alt="Регистрация по своему ИНН: профиль из ЕГРЮЛ, подача, контроффер">
+</p>
+
 Примеры для ИП, запрос `curl` и подробности: [`docs/test-accounts.md`](docs/test-accounts.md#проверка-на-своём-инн).
 Логин и ИНН уникальны: повторная регистрация возвращает 409.
 
@@ -95,7 +143,68 @@ docker compose up --build
 5. **Отказ.** `client_reject`, оборотный, 1 500 000 ₽: `REJECTED` с причиной простым языком (просрочка 120 дней).
 6. **Свой ИНН.** На экране входа «Зарегистрироваться по ИНН», например `7702000011` (одобрение) или `7702000043` (контроффер).
 
+<p align="center">
+  <img src="docs/media/flow-underwriter.gif" width="720" alt="Андеррайтер: очередь, разбор заявки, решение с комментарием, клиент видит оффер">
+</p>
+
 Те же сценарии с ожидаемыми цифрами: [`docs/test-scenarios.md`](docs/test-scenarios.md).
+
+## Процесс заявки и архитектура
+
+Статусы и переходы ниже совпадают с таблицей `TRANSITIONS` в коде ([`docs/state-machine.md`](docs/state-machine.md), файл сверяется тестом).
+
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT
+    DRAFT --> SUBMITTED: Клиент
+    SUBMITTED --> CHECKING: Система
+    CHECKING --> NEEDS_INFO: Система
+    CHECKING --> EXTERNAL_CHECK: Система
+    NEEDS_INFO --> CHECKING: Клиент
+    EXTERNAL_CHECK --> SCORING: Система
+    SCORING --> APPROVED: Система
+    SCORING --> COUNTER_OFFER: Система
+    SCORING --> NEEDS_INFO: Система
+    SCORING --> MANUAL_REVIEW: Система
+    SCORING --> REJECTED: Система
+    MANUAL_REVIEW --> APPROVED: Андеррайтер
+    MANUAL_REVIEW --> COUNTER_OFFER: Андеррайтер
+    MANUAL_REVIEW --> NEEDS_INFO: Андеррайтер
+    MANUAL_REVIEW --> REJECTED: Андеррайтер
+    MANUAL_REVIEW --> EXTERNAL_CHECK: Андеррайтер
+    APPROVED --> OFFER_ACCEPTED: Клиент
+    APPROVED --> DECLINED_BY_CLIENT: Клиент
+    COUNTER_OFFER --> OFFER_ACCEPTED: Клиент
+    COUNTER_OFFER --> DECLINED_BY_CLIENT: Клиент
+    APPROVED --> EXPIRED: Система
+    COUNTER_OFFER --> EXPIRED: Система
+    NEEDS_INFO --> EXPIRED: Система
+    DRAFT --> WITHDRAWN: Клиент
+    NEEDS_INFO --> WITHDRAWN: Клиент
+    MANUAL_REVIEW --> WITHDRAWN: Клиент
+    OFFER_ACCEPTED --> SIGNING: Система
+    SIGNING --> ISSUED: Клиент
+    REJECTED --> [*]
+    ISSUED --> [*]
+    DECLINED_BY_CLIENT --> [*]
+    WITHDRAWN --> [*]
+    EXPIRED --> [*]
+```
+
+Компоненты и вызовы: [`docs/architecture.md`](docs/architecture.md). Сервисы Docker Compose: `web`, `api`, `db`, `mocks`.
+
+```mermaid
+flowchart LR
+    Client[Клиент] --> Web[React / TypeScript / Ant Design]
+    Bank[Андеррайтер] --> Web
+    Web --> Nginx[Nginx: SPA и /api]
+    Nginx --> API[FastAPI: роли и команды]
+    API --> Domain[Стейт-машина / скоринг / политика / офферы]
+    API --> DB[(PostgreSQL 16)]
+    Domain --> DB
+    Domain --> HTTP[HTTP-клиент: таймауты и повторы]
+    HTTP --> Mocks[WireMock: ЕГРЮЛ / ФНС / БКИ]
+```
 
 ## Как принимается решение
 
