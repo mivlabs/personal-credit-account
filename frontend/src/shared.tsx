@@ -3,7 +3,7 @@ import { Alert, Typography } from 'antd';
 import { ApiError } from './api';
 const { Title } = Typography;
 export const fieldNames: Record<string,string> = { requestedAmount:'Сумма кредита, ₽', termMonths:'Срок, месяцев', purpose:'Цель кредита', revenueAmount:'Годовая выручка, ₽', debtAmount:'Текущий остаток долга, ₽' };
-export const factorNames: Record<string,string> = { AGE_MONTHS:'Возраст бизнеса, месяцев', ANNUAL_REVENUE_RUB:'Годовая выручка, ₽', DEBT_TO_ANNUAL_REVENUE:'Долг / годовая выручка', OVERDUE_DAYS:'Просрочка, дней', INDUSTRY:'Отрасль' };
+export const factorNames: Record<string,string> = { AGE_MONTHS:'Возраст бизнеса, месяцев', ANNUAL_REVENUE_RUB:'Годовая выручка, ₽', DEBT_TO_ANNUAL_REVENUE:'Долг / годовая выручка', OVERDUE_DAYS:'Просрочка, дней', INDUSTRY:'Отрасль', DATA_MISMATCH:'Расхождение анкеты с источниками' };
 // Тон статуса: зелёный только для положительного исхода, красный только для отказа, оранжевый там, где нужно действие клиента.
 export const statusTone = (s: string) => ['APPROVED','ISSUED','OFFER_ACCEPTED','SIGNING'].includes(s) ? 'good' : s === 'REJECTED' ? 'bad' : ['NEEDS_INFO','COUNTER_OFFER'].includes(s) ? 'warn' : ['DRAFT','WITHDRAWN','EXPIRED','DECLINED_BY_CLIENT'].includes(s) ? 'neutral' : 'info';
 export function StatusTag({status,name}: {status: string, name: string}) { return <span className={'status '+statusTone(status)}>{name}</span>; }
