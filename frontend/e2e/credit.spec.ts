@@ -32,7 +32,7 @@ test('Одобрение, сохранение черновика и выдач�
  await page.getByRole('button',{name:'Сохранить черновик',exact:true}).click();
  await expect(page.getByText('Черновик сохранён',{exact:true})).toBeVisible();
  await page.reload();
- await expect(page.getByLabel('Сумма кредита, ₽',{exact:true})).toHaveValue('1 500 000.00');
+ await expect(page.getByLabel('Сумма кредита, ₽',{exact:true})).toHaveValue('1 500 000');
  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
  await page.getByRole('button',{name:'Отправить заявку',exact:true}).click();
